@@ -110,20 +110,55 @@ void update_keyboard(ALLEGRO_EVENT* event) {
     }
 }
 
+/* mouse stuff -------------------------------------------------------------------- */
+// quite similar to the keyboard stuff, actually. might as well treat the mouse as a key instead
+
+#define MOUSE_SEEN 1
+#define MOUSE_RELEASED 2
+
+unsigned int mouse = 0;
+int mouse_x, mouse_y;
+ALLEGRO_MOUSE_STATE mouse_state;
+
+void init_mouse() {
+    mouse_x = mouse_y = 0;
+}
+
+void update_mouse(ALLEGRO_EVENT* event) {
+    al_get_mouse_state(&mouse_state);
+    mouse_x = mouse_state.x / DISPLAY_SCALE;
+    mouse_y = mouse_state.y / DISPLAY_SCALE;
+
+    switch (event->type) {
+        case ALLEGRO_EVENT_TIMER:
+            mouse &= MOUSE_SEEN;
+            break;
+        case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
+            mouse = MOUSE_SEEN | MOUSE_RELEASED;
+            break;
+        case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
+            mouse &= MOUSE_RELEASED;
+            break;
+    }
+}
+
 /* sprite stuff ------------------------------------------------------------------- */
 
 // this will change as i add more stuff to it. for now...
 
-#define BOMBER_WIDTH  40
-#define BOMBER_HEIGHT 25
-#define ENGINE_WIDTH  4
-#define ENGINE_HEIGHT 11
+#define BOMBER_WIDTH   40
+#define BOMBER_HEIGHT  29
+#define ENGINE_WIDTH   4
+#define ENGINE_HEIGHT  11
+#define REDICLE_WIDTH  18
+#define REDICLE_HEIGHT 18
 
 typedef struct SPRITES {
     ALLEGRO_BITMAP* _sprite_sheet;
     
     ALLEGRO_BITMAP* bomber;
     ALLEGRO_BITMAP* engine;
+    ALLEGRO_BITMAP* redicle;
 } SPRITES;
 
 SPRITES sprites;
@@ -138,13 +173,15 @@ void init_sprites() {
     sprites._sprite_sheet = al_load_bitmap("spritesheet.png");
     must_init(sprites._sprite_sheet, "main spritesheet");
     
-    sprites.bomber = get_sprite(0, 0, BOMBER_WIDTH, BOMBER_HEIGHT);
-    sprites.engine = get_sprite(41, 0, ENGINE_WIDTH, ENGINE_HEIGHT);
+    sprites.bomber  = get_sprite(0, 0, BOMBER_WIDTH, BOMBER_HEIGHT);
+    sprites.engine  = get_sprite(41, 0, ENGINE_WIDTH, ENGINE_HEIGHT);
+    sprites.redicle = get_sprite(46, 0, REDICLE_WIDTH, REDICLE_HEIGHT);
 }
 
 void destroy_sprites() {
     al_destroy_bitmap(sprites.bomber);
     al_destroy_bitmap(sprites.engine);
+    al_destroy_bitmap(sprites.redicle);
     
     al_destroy_bitmap(sprites._sprite_sheet);
 }
@@ -211,12 +248,45 @@ void draw_engines() {
     }
 }
 
+/* shots ------------------------------------------------------------------------ */
+#define MAX_SHOTS 256
+#define SHOT_SPEED 3
+
+typedef struct SHOT {
+    int x, y;
+    int dx, dy;
+} SHOT;
+
+void init_gunners() {
+
+}
+
+void update_shots() {
+
+}
+
+void draw_shots() {
+
+}
+
 /* gunners ---------------------------------------------------------------------- */
 
 #define GUNNER_RELOAD 8
+#define MAX_NUMBER_OF_GUNNERS 16
+
+typedef struct GUNNER {
+    int x, y;
+    int shot_timer;
+} GUNNER;
+
+GUNNER gunners[MAX_NUMBER_OF_GUNNERS];
 
 void update_gunners() {
 
+}
+
+void draw_gunners() {
+    al_draw_bitmap(sprites.redicle, mouse_x - (REDICLE_WIDTH / 2), mouse_y - (REDICLE_HEIGHT / 2), 0);
 }
 
 /* bombers -------------------------------------------------------------- */
@@ -228,6 +298,7 @@ void update_gunners() {
 typedef struct BOMBER {
     int x, y;
     ENGINE* engines[2];
+    GUNNER* gunners[2];
     bool down;
 } BOMBER;
 
@@ -255,16 +326,16 @@ void move_bomber(BOMBER* b, int number_of_engines, int dx, int dy) {
 }
 
 void update_bombers() {
-    if (key[ALLEGRO_KEY_LEFT]) {
+    if (key[ALLEGRO_KEY_LEFT] || key[ALLEGRO_KEY_A]) {
         move_bomber(&player, 2, -BOMBER_SPEED, 0);
     }
-    if (key[ALLEGRO_KEY_RIGHT]) {
+    if (key[ALLEGRO_KEY_RIGHT] || key[ALLEGRO_KEY_D]) {
         move_bomber(&player, 2, BOMBER_SPEED, 0);
     }
-    if (key[ALLEGRO_KEY_UP]) {
+    if (key[ALLEGRO_KEY_UP] || key[ALLEGRO_KEY_W]) {
         move_bomber(&player, 2, 0, -BOMBER_SPEED);
     }
-    if (key[ALLEGRO_KEY_DOWN]) {
+    if (key[ALLEGRO_KEY_DOWN] || key[ALLEGRO_KEY_S]) {
         move_bomber(&player, 2, 0, BOMBER_SPEED);
     }
     
@@ -284,6 +355,7 @@ void reset() {
 int main() {
     must_init(al_init(), "allegro");
     must_init(al_install_keyboard(), "keyboard");
+    must_init(al_install_mouse(), "mouse");
     
     ALLEGRO_TIMER* timer = al_create_timer(1.0 / 50.0);
     must_init(timer, "timer");
@@ -303,8 +375,12 @@ int main() {
     al_register_event_source(queue, al_get_timer_event_source(timer));
     
     init_keyboard();
+    init_mouse();
+    init_gunners();
     init_engines();
     init_bombers();
+
+    al_hide_mouse_cursor(display);
     
     frames = 0;
     score  = 0;
@@ -337,6 +413,7 @@ int main() {
         if (done) break;
         
         update_keyboard(&event);
+        update_mouse(&event);
         
         if (redraw && al_is_event_queue_empty(queue)) {
             display_pre_draw();
@@ -344,6 +421,7 @@ int main() {
             
             draw_bombers();
             draw_engines();
+            draw_gunners();
             
             display_post_draw();
             redraw = false;
