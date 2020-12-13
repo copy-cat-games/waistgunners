@@ -8,6 +8,10 @@
 #include <allegro5/allegro_acodec.h>
 #include <allegro5/allegro_image.h>
 
+// did i memorize that? yes. is it useless to memorize this many digits? yes. can these digits be wrong? yes.
+// #define PI 3.141592653589793238462643383279502884197169399358209
+#define PI 3.141592654
+
 /*
     compile:
     gcc -o waistgunners waistgunners.c -lm -lallegro -lallegro_font -lallegro_primitives -lallegro_audio -lallegro_acodec -lallegro_image
@@ -41,6 +45,40 @@ bool collision(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, in
         return false;
     }
     return true;
+}
+
+float get_angle(int ax, int ay, int bx, int by) {
+    float opp = by - ay;
+    float hyp = hypot(bx - ax, by - ay);
+
+    float angle = asin(opp / hyp);
+    if (ax > bx) {
+        angle = PI - angle;
+    }
+    while (angle < 0) {
+        angle += PI * 2;
+        // this is so that we get an angle between 0 and 2pi
+        // we won't have to deal with negative angles, which makes things a lot easier
+    }
+    return angle;
+}
+
+void angle_between(float* angle, float maximum, float minimum) {
+    float max = maximum;
+    while (max < minimum) {
+        max    += 2 * PI;
+        *angle += 2 * PI;
+    }
+
+    if (*angle < minimum) {
+        *angle = minimum;
+    }
+    if (*angle > max) {
+        *angle = max;
+    }
+    while (*angle > 2 * PI) {
+        *angle -= 2 * PI;
+    }
 }
 
 /* display stuff ------------------------------------------------------------------*/
@@ -111,35 +149,21 @@ void update_keyboard(ALLEGRO_EVENT* event) {
 }
 
 /* mouse stuff -------------------------------------------------------------------- */
-// quite similar to the keyboard stuff, actually. might as well treat the mouse as a key instead
-
-#define MOUSE_SEEN 1
-#define MOUSE_RELEASED 2
 
 unsigned int mouse = 0;
 int mouse_x, mouse_y;
 ALLEGRO_MOUSE_STATE mouse_state;
 
 void init_mouse() {
+    mouse   = 0;
     mouse_x = mouse_y = 0;
 }
 
-void update_mouse(ALLEGRO_EVENT* event) {
+void update_mouse() {
     al_get_mouse_state(&mouse_state);
     mouse_x = mouse_state.x / DISPLAY_SCALE;
     mouse_y = mouse_state.y / DISPLAY_SCALE;
-
-    switch (event->type) {
-        case ALLEGRO_EVENT_TIMER:
-            mouse &= MOUSE_SEEN;
-            break;
-        case ALLEGRO_EVENT_MOUSE_BUTTON_DOWN:
-            mouse = MOUSE_SEEN | MOUSE_RELEASED;
-            break;
-        case ALLEGRO_EVENT_MOUSE_BUTTON_UP:
-            mouse &= MOUSE_RELEASED;
-            break;
-    }
+    mouse   = al_mouse_button_down(&mouse_state, 1);
 }
 
 /* sprite stuff ------------------------------------------------------------------- */
@@ -159,6 +183,7 @@ typedef struct SPRITES {
     ALLEGRO_BITMAP* bomber;
     ALLEGRO_BITMAP* engine;
     ALLEGRO_BITMAP* redicle;
+    ALLEGRO_BITMAP* redicle2;
 } SPRITES;
 
 SPRITES sprites;
@@ -173,15 +198,17 @@ void init_sprites() {
     sprites._sprite_sheet = al_load_bitmap("spritesheet.png");
     must_init(sprites._sprite_sheet, "main spritesheet");
     
-    sprites.bomber  = get_sprite(0, 0, BOMBER_WIDTH, BOMBER_HEIGHT);
-    sprites.engine  = get_sprite(41, 0, ENGINE_WIDTH, ENGINE_HEIGHT);
-    sprites.redicle = get_sprite(46, 0, REDICLE_WIDTH, REDICLE_HEIGHT);
+    sprites.bomber   = get_sprite(0, 0, BOMBER_WIDTH, BOMBER_HEIGHT);
+    sprites.engine   = get_sprite(41, 0, ENGINE_WIDTH, ENGINE_HEIGHT);
+    sprites.redicle  = get_sprite(46, 0, REDICLE_WIDTH, REDICLE_HEIGHT);
+    sprites.redicle2 = get_sprite(65, 0, REDICLE_WIDTH, REDICLE_HEIGHT);
 }
 
 void destroy_sprites() {
     al_destroy_bitmap(sprites.bomber);
     al_destroy_bitmap(sprites.engine);
     al_destroy_bitmap(sprites.redicle);
+    al_destroy_bitmap(sprites.redicle2);
     
     al_destroy_bitmap(sprites._sprite_sheet);
 }
@@ -251,42 +278,132 @@ void draw_engines() {
 /* shots ------------------------------------------------------------------------ */
 #define MAX_SHOTS 256
 #define SHOT_SPEED 3
+#define SHOT_SIZE 2
 
 typedef struct SHOT {
-    int x, y;
-    int dx, dy;
+    float x, y;
+    float dx, dy;
+    bool used;
+    bool player;
 } SHOT;
 
-void init_gunners() {
+SHOT shots[MAX_SHOTS];
 
+void add_shot(float x, float y, float dx, float dy, bool player) {
+    SHOT* shot;
+    for (int c = 0; c < MAX_SHOTS; c++) {
+        if (shots[c].used) continue;
+        shot       = &(shots[c]);
+        shot->x    = x,  shot->y  = y;
+        shot->dx   = dx, shot->dy = dy;
+        shot->used = true;
+
+        shot->player = player;
+        return;
+    }
+
+    printf("maximum number of shots reached! unable to create shot!\n");
 }
 
 void update_shots() {
+    SHOT* shot;
+    for (int c = 0; c < MAX_SHOTS; c++) {
+        if (!shots[c].used) continue;
+        shot     = &(shots[c]);
+        shot->x += shot->dx * SHOT_SPEED;
+        shot->y += shot->dy * SHOT_SPEED;
 
+        if (shot->x < 0 || shot->y < 0 || shot->x > BUFFER_WIDTH || shot->y > BUFFER_HEIGHT) {
+            shot->used = false;
+        }
+    }
 }
 
 void draw_shots() {
-
+    SHOT* shot;
+    for (int c = 0; c < MAX_SHOTS; c++) {
+        if (!shots[c].used) continue;
+        shot = &(shots[c]);
+        al_draw_line(
+            shot->x, shot->y,
+            shot->x - shot->dx * SHOT_SPEED,
+            shot->y - shot->dy * SHOT_SPEED,
+            al_map_rgb_f(1, 0.5, 0), 2.0
+        );
+    }
 }
 
 /* gunners ---------------------------------------------------------------------- */
 
 #define GUNNER_RELOAD 8
 #define MAX_NUMBER_OF_GUNNERS 16
+#define GUNNER_LENGTH 3
 
 typedef struct GUNNER {
     int x, y;
     int shot_timer;
+    bool used;
+    bool active;
+
+    float angle;
+    float max_angle;
+    float min_angle;
 } GUNNER;
 
 GUNNER gunners[MAX_NUMBER_OF_GUNNERS];
 
-void update_gunners() {
+GUNNER* add_gunner(int x, int y, float min, float max) {
+    GUNNER* gunner;
+    for (int c = 0; c < MAX_NUMBER_OF_GUNNERS; c++) {
+        if (gunners[c].used) continue;
+        gunner             = &(gunners[c]);
+        gunner->x          = x;
+        gunner->y          = y;
+        gunner->shot_timer = 0;
+        gunner->max_angle  = max;
+        gunner->min_angle  = min;
+        gunner->angle      = between_f(min, max);
 
+        gunner->used = gunner->active = true;
+        return gunner;
+    }
+    printf("cannot add more gunners! maximum reached!\n");
+    return NULL;
+}
+
+void update_gunners() {
+    GUNNER* gunner;
+    for (int c = 0; c < MAX_NUMBER_OF_GUNNERS; c++) {
+        if (!gunners[c].active) continue;
+        gunner        = &(gunners[c]);
+        gunner->angle = get_angle(gunner->x, gunner->y, mouse_x, mouse_y);
+        // angle_between(&(gunner->angle), gunner->max_angle, gunner->min_angle);
+        if (gunner->shot_timer) {
+            gunner->shot_timer--;
+        }
+        if (!(gunner->shot_timer) && mouse) {
+            // fire a shot!
+            add_shot(gunner->x, gunner->y, cos(gunner->angle), sin(gunner->angle), true);
+            gunner->shot_timer = GUNNER_RELOAD;
+        }
+    }
 }
 
 void draw_gunners() {
-    al_draw_bitmap(sprites.redicle, mouse_x - (REDICLE_WIDTH / 2), mouse_y - (REDICLE_HEIGHT / 2), 0);
+    GUNNER* gunner;
+    for (int c = 0; c < MAX_NUMBER_OF_GUNNERS; c++) {
+        if (!gunners[c].active) continue;
+
+        gunner = &(gunners[c]);
+        al_draw_line(gunner->x, gunner->y,
+            gunner->x + cos(gunner->angle) * GUNNER_LENGTH,
+            gunner->y + sin(gunner->angle) * GUNNER_LENGTH,
+            al_map_rgb_f(0, 0, 0), 2
+        );
+    }
+    al_draw_bitmap(mouse ? sprites.redicle2 : sprites.redicle,
+        mouse_x - (REDICLE_WIDTH / 2), mouse_y - (REDICLE_HEIGHT / 2), 0
+    );
 }
 
 /* bombers -------------------------------------------------------------- */
@@ -300,10 +417,12 @@ typedef struct BOMBER {
     ENGINE* engines[2];
     GUNNER* gunners[2];
     bool down;
+    // now, all we're missing is the bomb bay and some bombs...
 } BOMBER;
 
-#define MAX_NUMBER_OF_BOMBERS 4;
-#define BOMBER_ENGINES { { 9, 3 }, { 23, 3 } };
+#define MAX_NUMBER_OF_BOMBERS 4
+#define BOMBER_ENGINES { { 9, 3 }, { 23, 3 } }
+#define BOMBER_GUNNERS { {15, 16}, { 24, 16} }
 // BOMBERS bombers[MAX_NUMBER_OF_BOMBERS];
 BOMBER player;
 
@@ -314,29 +433,35 @@ void init_bombers() {
     
     player.engines[0] = add_engine(player.x + 9, player.y + 3);
     player.engines[1] = add_engine(player.x + 27, player.y + 3);
+    player.gunners[0] = add_gunner(player.x + 15, player.y + 16, PI / 2, 3 * PI / 2);
+    player.gunners[1] = add_gunner(player.x + 24, player.y + 16, 3 * PI / 2, PI / 2);
 }
 
-void move_bomber(BOMBER* b, int number_of_engines, int dx, int dy) {
+void move_bomber(BOMBER* b, int number_of_engines, int number_of_gunners, int dx, int dy) {
     b->x += dx; b->y += dy;
     
     for (int c = 0; c < number_of_engines; c++) {
         ENGINE* e = b->engines[c];
         e->x += dx; e->y += dy;
     }
+    for (int c = 0; c < number_of_gunners; c++) {
+        GUNNER* g = b->gunners[c];
+        g->x += dx; g->y += dy;
+    }
 }
 
 void update_bombers() {
     if (key[ALLEGRO_KEY_LEFT] || key[ALLEGRO_KEY_A]) {
-        move_bomber(&player, 2, -BOMBER_SPEED, 0);
+        move_bomber(&player, 2, 2, -BOMBER_SPEED, 0);
     }
     if (key[ALLEGRO_KEY_RIGHT] || key[ALLEGRO_KEY_D]) {
-        move_bomber(&player, 2, BOMBER_SPEED, 0);
+        move_bomber(&player, 2, 2, BOMBER_SPEED, 0);
     }
     if (key[ALLEGRO_KEY_UP] || key[ALLEGRO_KEY_W]) {
-        move_bomber(&player, 2, 0, -BOMBER_SPEED);
+        move_bomber(&player, 2, 2, 0, -BOMBER_SPEED);
     }
     if (key[ALLEGRO_KEY_DOWN] || key[ALLEGRO_KEY_S]) {
-        move_bomber(&player, 2, 0, BOMBER_SPEED);
+        move_bomber(&player, 2, 2, 0, BOMBER_SPEED);
     }
     
     // remember to check for dead engines!
@@ -376,7 +501,6 @@ int main() {
     
     init_keyboard();
     init_mouse();
-    init_gunners();
     init_engines();
     init_bombers();
 
@@ -396,8 +520,11 @@ int main() {
         
         switch (event.type) {
             case ALLEGRO_EVENT_TIMER:
+                update_mouse();
                 update_engines();
                 update_bombers();
+                update_shots();
+                update_gunners();
                 
                 if (key[ALLEGRO_KEY_ESCAPE]) {
                     done = true;
@@ -413,7 +540,6 @@ int main() {
         if (done) break;
         
         update_keyboard(&event);
-        update_mouse(&event);
         
         if (redraw && al_is_event_queue_empty(queue)) {
             display_pre_draw();
@@ -422,6 +548,7 @@ int main() {
             draw_bombers();
             draw_engines();
             draw_gunners();
+            draw_shots();
             
             display_post_draw();
             redraw = false;
