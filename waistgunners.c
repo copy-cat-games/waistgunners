@@ -333,9 +333,80 @@ void draw_engines() {
     }
 }
 
+/* enemies ---------------------------------------------------------------------- */
+
+#define MAX_NUMBER_OF_ENEMIES  64
+
+const int MAX_ENEMY_HEALTH[] = { 15, 10, 25 };
+
+typedef enum ENEMY_TYPE {
+    ENEMY_TYPE_FIGHTER = 0,
+    ENEMY_TYPE_JET,
+    ENEMY_TYPE_DESTROYER
+    
+    // more to come?
+} ENEMY_TYPE;
+
+typedef struct ENEMY {
+    int x, y;
+    ENEMY_TYPE type;
+    int health;
+    int shot_timer;
+    ENGINE* target;
+    bool used;
+} ENEMY;
+
+ENEMY enemies[MAX_NUMBER_OF_ENEMIES];
+
+void add_enemy(int x, ENEMY_TYPE type) {
+    for (int c = 0; c < MAX_NUMBER_OF_ENEMIES; c++) {
+        if (enemies[c].used) continue;
+        ENEMY* e = &enemies[c];
+        e->x     = x;
+        e->y     = 0;
+        e->type  = type;
+        e->used  = true;
+
+        e->health = MAX_ENEMY_HEALTH[e->type];
+        e->target = NULL;
+        return;
+    }
+}
+
+void update_enemies() {
+    for (int c = 0; c < MAX_NUMBER_OF_ENEMIES; c++) {
+        if (!enemies[c].used) continue;
+        ENEMY* e = &enemies[c];
+        switch (e->type) {
+            case ENEMY_TYPE_FIGHTER:
+                // comes top down. aligns itself with your engines. slow
+                break;
+            case ENEMY_TYPE_JET:
+                // comes top down. aligns itself with your engines, much faster.
+                break;
+            case ENEMY_TYPE_DESTROYER:
+                // doom...
+                break;
+        }
+    }
+}
+
+void draw_enemies() {
+    for (int c = 0; c < MAX_NUMBER_OF_ENEMIES; c++) {
+        if (!enemies[c].used) continue;
+        ENEMY* e = &enemies[c];
+        switch (enemies[c].type) {
+            case ENEMY_TYPE_FIGHTER:
+            case ENEMY_TYPE_JET:
+            case ENEMY_TYPE_DESTROYER:
+                break;
+        }
+    }
+}
+
 /* gunners ---------------------------------------------------------------------- */
 
-#define GUNNER_RELOAD 8
+#define GUNNER_RELOAD 12
 #define MAX_NUMBER_OF_GUNNERS 16
 #define GUNNER_LENGTH 3
 #define GUNNER_INACCURACY 0.06283 // PI / 50, or about 3.6 degrees in either direction
@@ -466,21 +537,31 @@ void init_bombers() {
         b->gunners[0] = add_gunner(x + GUNNER_1_X, y + GUNNER_1_Y, PI / 2, 3 * PI / 2);
         b->gunners[1] = add_gunner(x + GUNNER_2_X, y + GUNNER_2_Y, 3 * PI / 2, PI / 2);
     }
-    /*
-    // for now, just one
-    player.x = (BUFFER_WIDTH - BOMBER_WIDTH) / 2;
-    player.y = (BUFFER_HEIGHT - BOMBER_HEIGHT) / 2;
-    
-    player.engines[0] = add_engine(player.x + ENGINE_1_X, player.y + ENGINE_1_Y);
-    player.engines[1] = add_engine(player.x + ENGINE_2_X, player.y + ENGINE_2_Y);
-    player.gunners[0] = add_gunner(player.x + GUNNER_1_X, player.y + GUNNER_1_Y, PI / 2, 3 * PI / 2);
-    player.gunners[1] = add_gunner(player.x + GUNNER_2_X, player.y + GUNNER_2_Y, 3 * PI / 2, PI / 2);
-    */
 }
 
 #define BOMBER_MARGIN 10 // somehow implement it so that the formation doesn't go too far off the screen
 
 void move_bombers(int number_of_engines, int number_of_gunners, int dx, int dy) {
+    if (frames % 2) return;
+    // now, the way to do this would be to first calculate the future positions of our bombers
+    // if any of the bombers would go too far offscreen, we cancel the movement.
+    // otherwise, we move the bombers there
+    // obviously, we'd check for downed bombers
+    for (int c = 0; c < MAX_NUMBER_OF_BOMBERS; c++) {
+        BOMBER* b = &bombers[c];
+        if (b->down) continue;
+        int future_x = b->x + dx; int future_y = b->y + dy;
+        if (
+            future_x < -BOMBER_MARGIN ||
+            future_y < -BOMBER_MARGIN ||
+            future_x + BOMBER_WIDTH > BUFFER_WIDTH + BOMBER_MARGIN ||
+            future_y + BOMBER_HEIGHT > BUFFER_HEIGHT + BOMBER_MARGIN
+        ) {
+            // cancel the movement
+            return;
+        }
+    }
+
     for (int i = 0; i < MAX_NUMBER_OF_BOMBERS; i++) {
         BOMBER* b = &bombers[i];
         if (b->down) continue;
@@ -522,6 +603,35 @@ void draw_bombers() {
     }
 }
 
+/* heads up display, probably in the top left corner --------------------- */
+
+long display_score;
+ALLEGRO_FONT* font;
+
+void init_hud() {
+    font = al_create_builtin_font();
+    must_init(font, "font");
+
+    display_score = 0;
+}
+
+void update_hud() {
+    if (frames % 2) return;
+    for (long i = 5; i > 0; i--) {
+        // not my algorithm
+        long difference = 1 << i;
+        if (display_score < score - difference) {
+            display_score += difference;
+        }
+    }
+}
+
+void draw_hud() {
+    al_draw_textf(font, al_map_rgb(0, 0, 0), 2, 2, 0, "SCORE %06ld", display_score);
+    // remember to also display "G A M E   O V E R" when all four bombers have been shot down
+    // if i know what i'm doing (and i don't), i might add high score functionality! no promises, though
+}
+
 /* main game loop -------------------------------------------------------- */
 
 void reset() {
@@ -554,6 +664,7 @@ int main() {
     init_mouse();
     init_engines();
     init_bombers();
+    init_hud();
 
     al_hide_mouse_cursor(display);
     
@@ -600,6 +711,8 @@ int main() {
             draw_engines();
             draw_gunners();
             draw_shots();
+            update_hud();
+            draw_hud();
             
             display_post_draw();
             redraw = false;
