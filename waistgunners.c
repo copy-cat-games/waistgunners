@@ -170,10 +170,10 @@ void update_mouse() {
 
 // this will change as i add more stuff to it. for now...
 
-#define BOMBER_WIDTH   40
-#define BOMBER_HEIGHT  29
-#define ENGINE_WIDTH   4
-#define ENGINE_HEIGHT  11
+#define BOMBER_WIDTH   63
+#define BOMBER_HEIGHT  58
+#define ENGINE_WIDTH   7
+#define ENGINE_HEIGHT  14
 #define REDICLE_WIDTH  18
 #define REDICLE_HEIGHT 18
 
@@ -198,8 +198,8 @@ void init_sprites() {
     sprites._sprite_sheet = al_load_bitmap("spritesheet.png");
     must_init(sprites._sprite_sheet, "main spritesheet");
     
-    sprites.bomber   = get_sprite(0, 0, BOMBER_WIDTH, BOMBER_HEIGHT);
-    sprites.engine   = get_sprite(41, 0, ENGINE_WIDTH, ENGINE_HEIGHT);
+    sprites.bomber   = get_sprite(0, 29, BOMBER_WIDTH, BOMBER_HEIGHT);
+    sprites.engine   = get_sprite(64, 30, ENGINE_WIDTH, ENGINE_HEIGHT);
     sprites.redicle  = get_sprite(46, 0, REDICLE_WIDTH, REDICLE_HEIGHT);
     sprites.redicle2 = get_sprite(65, 0, REDICLE_WIDTH, REDICLE_HEIGHT);
 }
@@ -216,6 +216,64 @@ void destroy_sprites() {
 /* audio stuff --- i'll figure it out later --------------------------------------- */
 
 /* effects -- i'll figure it out later ---------------------------------------------- */
+
+/* shots ------------------------------------------------------------------------ */
+#define MAX_SHOTS 256
+#define SHOT_SPEED 3
+#define SHOT_SIZE 2
+
+typedef struct SHOT {
+    float x, y;
+    float dx, dy;
+    bool used;
+    bool player;
+} SHOT;
+
+SHOT shots[MAX_SHOTS];
+
+void add_shot(float x, float y, float dx, float dy, bool player) {
+    SHOT* shot;
+    for (int c = 0; c < MAX_SHOTS; c++) {
+        if (shots[c].used) continue;
+        shot       = &(shots[c]);
+        shot->x    = x,  shot->y  = y;
+        shot->dx   = dx, shot->dy = dy;
+        shot->used = true;
+
+        shot->player = player;
+        return;
+    }
+
+    printf("maximum number of shots reached! unable to create shot!\n");
+}
+
+void update_shots() {
+    SHOT* shot;
+    for (int c = 0; c < MAX_SHOTS; c++) {
+        if (!shots[c].used) continue;
+        shot     = &(shots[c]);
+        shot->x += shot->dx * SHOT_SPEED;
+        shot->y += shot->dy * SHOT_SPEED;
+
+        if (shot->x < 0 || shot->y < 0 || shot->x > BUFFER_WIDTH || shot->y > BUFFER_HEIGHT) {
+            shot->used = false;
+        }
+    }
+}
+
+void draw_shots() {
+    SHOT* shot;
+    for (int c = 0; c < MAX_SHOTS; c++) {
+        if (!shots[c].used) continue;
+        shot = &(shots[c]);
+        al_draw_line(
+            shot->x, shot->y,
+            shot->x - shot->dx * SHOT_SPEED,
+            shot->y - shot->dy * SHOT_SPEED,
+            shot->player ? al_map_rgb_f(0, 0.5, 1) : al_map_rgb_f(1, 0.5, 0), 2.0
+        );
+    }
+}
 
 /* engines -- critical to your squad! ------------------------------------------------- */
 
@@ -275,69 +333,12 @@ void draw_engines() {
     }
 }
 
-/* shots ------------------------------------------------------------------------ */
-#define MAX_SHOTS 256
-#define SHOT_SPEED 3
-#define SHOT_SIZE 2
-
-typedef struct SHOT {
-    float x, y;
-    float dx, dy;
-    bool used;
-    bool player;
-} SHOT;
-
-SHOT shots[MAX_SHOTS];
-
-void add_shot(float x, float y, float dx, float dy, bool player) {
-    SHOT* shot;
-    for (int c = 0; c < MAX_SHOTS; c++) {
-        if (shots[c].used) continue;
-        shot       = &(shots[c]);
-        shot->x    = x,  shot->y  = y;
-        shot->dx   = dx, shot->dy = dy;
-        shot->used = true;
-
-        shot->player = player;
-        return;
-    }
-
-    printf("maximum number of shots reached! unable to create shot!\n");
-}
-
-void update_shots() {
-    SHOT* shot;
-    for (int c = 0; c < MAX_SHOTS; c++) {
-        if (!shots[c].used) continue;
-        shot     = &(shots[c]);
-        shot->x += shot->dx * SHOT_SPEED;
-        shot->y += shot->dy * SHOT_SPEED;
-
-        if (shot->x < 0 || shot->y < 0 || shot->x > BUFFER_WIDTH || shot->y > BUFFER_HEIGHT) {
-            shot->used = false;
-        }
-    }
-}
-
-void draw_shots() {
-    SHOT* shot;
-    for (int c = 0; c < MAX_SHOTS; c++) {
-        if (!shots[c].used) continue;
-        shot = &(shots[c]);
-        al_draw_line(
-            shot->x, shot->y,
-            shot->x - shot->dx * SHOT_SPEED,
-            shot->y - shot->dy * SHOT_SPEED,
-            al_map_rgb_f(1, 0.5, 0), 2.0
-        );
-    }
-}
-
 /* gunners ---------------------------------------------------------------------- */
 
 #define GUNNER_RELOAD 8
 #define MAX_NUMBER_OF_GUNNERS 16
 #define GUNNER_LENGTH 3
+#define GUNNER_INACCURACY 0.06283 // PI / 50, or about 3.6 degrees in either direction
 
 typedef struct GUNNER {
     int x, y;
@@ -383,7 +384,8 @@ void update_gunners() {
         }
         if (!(gunner->shot_timer) && mouse) {
             // fire a shot!
-            add_shot(gunner->x, gunner->y, cos(gunner->angle), sin(gunner->angle), true);
+            float shooting_angle = gunner->angle + between_f(-GUNNER_INACCURACY, GUNNER_INACCURACY);
+            add_shot(gunner->x, gunner->y, cos(shooting_angle), sin(shooting_angle), true);
             gunner->shot_timer = GUNNER_RELOAD;
         }
     }
@@ -408,6 +410,7 @@ void draw_gunners() {
 
 /* bombers -------------------------------------------------------------- */
 #define ENGINES_PER_BOMBER 2
+#define GUNNERS_PER_BOMBER 2
 #define BOMBER_SPEED       1
 #define BOMBER_MAX_X       (BUFFER_WIDTH - BOMBER_WIDTH)
 #define BOMBER_MAX_Y       (BUFFER_HEIGHT - BOMBER_HEIGHT);
@@ -421,54 +424,102 @@ typedef struct BOMBER {
 } BOMBER;
 
 #define MAX_NUMBER_OF_BOMBERS 4
-#define BOMBER_ENGINES { { 9, 3 }, { 23, 3 } }
-#define BOMBER_GUNNERS { {15, 16}, { 24, 16} }
-// BOMBERS bombers[MAX_NUMBER_OF_BOMBERS];
+
+#define ENGINE_1_X 16
+#define ENGINE_1_Y 14
+#define ENGINE_2_X 40
+#define ENGINE_2_Y 14
+
+#define GUNNER_1_X 24
+#define GUNNER_1_Y 33
+#define GUNNER_2_X 38
+#define GUNNER_2_Y 33
+
+BOMBER bombers[MAX_NUMBER_OF_BOMBERS];
 BOMBER player;
 
 void init_bombers() {
+    for (int c = 0; c < MAX_NUMBER_OF_BOMBERS; c++) {
+        BOMBER* b = &(bombers[c]);
+        int x = BUFFER_WIDTH / 2, y = BUFFER_HEIGHT / 2;
+        switch (c) {
+            // gotta fly in formation!
+            // these numbers will probably need some tweaking
+            case 0:
+                break;
+            case 1:
+                x -= 40;
+                y += 40;
+                break;
+            case 2:
+                x -= 80;
+                y += 80;
+                break;
+            case 3:
+                x += 40;
+                y += 40;
+                break;
+        }
+        b->x = x; b->y = y;
+        b->engines[0] = add_engine(x + ENGINE_1_X, y + ENGINE_1_Y);
+        b->engines[1] = add_engine(x + ENGINE_2_X, y + ENGINE_2_Y);
+        b->gunners[0] = add_gunner(x + GUNNER_1_X, y + GUNNER_1_Y, PI / 2, 3 * PI / 2);
+        b->gunners[1] = add_gunner(x + GUNNER_2_X, y + GUNNER_2_Y, 3 * PI / 2, PI / 2);
+    }
+    /*
     // for now, just one
     player.x = (BUFFER_WIDTH - BOMBER_WIDTH) / 2;
     player.y = (BUFFER_HEIGHT - BOMBER_HEIGHT) / 2;
     
-    player.engines[0] = add_engine(player.x + 9, player.y + 3);
-    player.engines[1] = add_engine(player.x + 27, player.y + 3);
-    player.gunners[0] = add_gunner(player.x + 15, player.y + 16, PI / 2, 3 * PI / 2);
-    player.gunners[1] = add_gunner(player.x + 24, player.y + 16, 3 * PI / 2, PI / 2);
+    player.engines[0] = add_engine(player.x + ENGINE_1_X, player.y + ENGINE_1_Y);
+    player.engines[1] = add_engine(player.x + ENGINE_2_X, player.y + ENGINE_2_Y);
+    player.gunners[0] = add_gunner(player.x + GUNNER_1_X, player.y + GUNNER_1_Y, PI / 2, 3 * PI / 2);
+    player.gunners[1] = add_gunner(player.x + GUNNER_2_X, player.y + GUNNER_2_Y, 3 * PI / 2, PI / 2);
+    */
 }
 
-void move_bomber(BOMBER* b, int number_of_engines, int number_of_gunners, int dx, int dy) {
-    b->x += dx; b->y += dy;
-    
-    for (int c = 0; c < number_of_engines; c++) {
-        ENGINE* e = b->engines[c];
-        e->x += dx; e->y += dy;
-    }
-    for (int c = 0; c < number_of_gunners; c++) {
-        GUNNER* g = b->gunners[c];
-        g->x += dx; g->y += dy;
+#define BOMBER_MARGIN 10 // somehow implement it so that the formation doesn't go too far off the screen
+
+void move_bombers(int number_of_engines, int number_of_gunners, int dx, int dy) {
+    for (int i = 0; i < MAX_NUMBER_OF_BOMBERS; i++) {
+        BOMBER* b = &bombers[i];
+        if (b->down) continue;
+        b->x += dx; b->y += dy;
+        for (int c = 0; c < number_of_engines; c++) {
+            ENGINE* e = b->engines[c];
+            e->x += dx; e->y += dy;
+        }
+        for (int c = 0; c < number_of_gunners; c++) {
+            GUNNER* g = b->gunners[c];
+            g->x += dx; g->y += dy;
+        }
     }
 }
 
 void update_bombers() {
     if (key[ALLEGRO_KEY_LEFT] || key[ALLEGRO_KEY_A]) {
-        move_bomber(&player, 2, 2, -BOMBER_SPEED, 0);
+        move_bombers(2, 2, -BOMBER_SPEED, 0);
     }
     if (key[ALLEGRO_KEY_RIGHT] || key[ALLEGRO_KEY_D]) {
-        move_bomber(&player, 2, 2, BOMBER_SPEED, 0);
+        move_bombers(2, 2, BOMBER_SPEED, 0);
     }
     if (key[ALLEGRO_KEY_UP] || key[ALLEGRO_KEY_W]) {
-        move_bomber(&player, 2, 2, 0, -BOMBER_SPEED);
+        move_bombers(2, 2, 0, -BOMBER_SPEED);
     }
     if (key[ALLEGRO_KEY_DOWN] || key[ALLEGRO_KEY_S]) {
-        move_bomber(&player, 2, 2, 0, BOMBER_SPEED);
+        move_bombers(2, 2, 0, BOMBER_SPEED);
     }
     
     // remember to check for dead engines!
 }
 
 void draw_bombers() {
-    al_draw_bitmap(sprites.bomber, player.x, player.y, 0);
+    for (int c = 0; c < MAX_NUMBER_OF_BOMBERS; c++) {
+        BOMBER* b = &(bombers[c]);
+        if (!b->down) {
+            al_draw_bitmap(sprites.bomber, b->x, b->y, 0);
+        }
+    }
 }
 
 /* main game loop -------------------------------------------------------- */
