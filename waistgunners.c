@@ -15,6 +15,8 @@
 /*
     compile:
     gcc -o waistgunners waistgunners.c -lm -lallegro -lallegro_font -lallegro_primitives -lallegro_audio -lallegro_acodec -lallegro_image
+    x86_64-w64-mingw32-gcc -I/home/sugarleaf/Runtimes/allegro/include -B /home/sugarleaf/Runtimes/allegro/bin -o waistgunners waistgunners.c -lm -l allegro -lallegro_font -lallegro_primitives -lallegro_audio -lallegro_acodec -lallegro_image
+
 */
 
 /* game helper stuff --------------------------------------------------------- */
@@ -217,6 +219,95 @@ void destroy_sprites() {
 
 /* effects -- i'll figure it out later ---------------------------------------------- */
 
+#define MAX_NUMBER_OF_PARTICLES 512
+
+const int MAX_LIFETIMES[] = { 75 };
+
+typedef enum PARTICLE_TYPE {
+    SMOKE_PARTICLE = 0
+} PARTICLE_TYPE;
+
+typedef struct PARTICLE {
+    float x, y;
+    float dx, dy;
+    int lifetime;
+    PARTICLE_TYPE type;
+    bool used;
+    int data; // can be used for different things, for different particles
+} PARTICLE;
+
+PARTICLE particles[MAX_NUMBER_OF_PARTICLES];
+
+void add_particle(float x, float y, float dx, float dy, PARTICLE_TYPE type, int data) {
+    PARTICLE* p;
+    for (int c = 0; c < MAX_NUMBER_OF_PARTICLES; c++) {
+        if (particles[c].used) continue;
+        p = &particles[c];
+
+        p->x  = x + between(-2, 2);
+        p->y  = y + between(-2, 2);
+        p->dx = dx;
+        p->dy = dy;
+
+        p->type     = type;
+        p->used     = true;
+        p->data     = data;
+        p->lifetime = 0;
+
+        switch (p->type) {
+            case SMOKE_PARTICLE:
+                p->lifetime = between(0, MAX_LIFETIMES[0] / 2);
+        }
+
+        return;
+    }
+    printf("can't create particle! maximum reached!\n");
+}
+
+void update_particles() {
+    PARTICLE* p;
+    for (int c = 0; c < MAX_NUMBER_OF_PARTICLES; c++) {
+        if (!particles[c].used) continue;
+        p = &particles[c];
+        p->x += p->dx, p->y += p->dy;
+        p->lifetime++;
+        if (p->lifetime > MAX_LIFETIMES[p->type]) {
+            p->used = false;
+        }
+        switch (p->type) {
+            // particle type specific behaviour goes here
+            // not every particle type needs to be here
+        }
+    }
+}
+
+void draw_particles() {
+    PARTICLE* p;
+
+    // for smoke particles
+    float alpha;
+    float radius;
+    float colour;
+
+    for (int c = 0; c < MAX_NUMBER_OF_PARTICLES; c++) {
+        if (!particles[c].used) continue;
+        p = &particles[c];
+        switch (p->type) {
+            case SMOKE_PARTICLE:
+                // for now, just draw a circle that gets more transparent as it floats on
+                alpha  = 1.0 - (float) p->lifetime / (float) MAX_LIFETIMES[p->type];
+                radius = (1.0 - alpha) * 10;
+                colour = p->data ? 0.0 : 0.5;
+                al_draw_filled_circle(p->x, p->y, radius, al_map_rgba_f(colour, colour, colour, alpha));
+                break;
+        }
+    }
+    // reticle should be drawn on top of everything else
+    al_draw_bitmap(mouse ? sprites.redicle2 : sprites.redicle,
+        mouse_x - (REDICLE_WIDTH / 2), mouse_y - (REDICLE_HEIGHT / 2), 0
+    );
+}
+
 /* shots ------------------------------------------------------------------------ */
 #define MAX_SHOTS 256
 #define SHOT_SPEED 3
@@ -320,8 +411,8 @@ void update_engines() {
             e->dead = true;
         }
         
-        if ((frames / 5) % ENGINE_MAX_HEALTH < (ENGINE_MAX_HEALTH - e->health)) {
-            // draw a smoke particle
+        if (between(0, ENGINE_MAX_HEALTH) > e->health) {
+            add_particle(e->x + ENGINE_WIDTH / 2, e->y + ENGINE_HEIGHT / 2, between_f(-0.1, 0.1), 1, SMOKE_PARTICLE, e->health > 4 ? 0 : 1);
         }
     }
 }
@@ -338,6 +429,7 @@ void draw_engines() {
 #define MAX_NUMBER_OF_ENEMIES  64
 
 const int MAX_ENEMY_HEALTH[] = { 15, 10, 25 };
+const int REWARDS[]          = { 10, 25, 50 }; // point awards for destroying enemies
 
 typedef enum ENEMY_TYPE {
     ENEMY_TYPE_FIGHTER = 0,
@@ -474,9 +566,6 @@ void draw_gunners() {
             al_map_rgb_f(0, 0, 0), 2
         );
     }
-    al_draw_bitmap(mouse ? sprites.redicle2 : sprites.redicle,
-        mouse_x - (REDICLE_WIDTH / 2), mouse_y - (REDICLE_HEIGHT / 2), 0
-    );
 }
 
 /* bombers -------------------------------------------------------------- */
@@ -627,7 +716,7 @@ void update_hud() {
 }
 
 void draw_hud() {
-    al_draw_textf(font, al_map_rgb(0, 0, 0), 2, 2, 0, "SCORE %06ld", display_score);
+    al_draw_textf(font, al_map_rgb(255, 255, 255), 2, 2, 0, "SCORE %06ld", display_score);
     // remember to also display "G A M E   O V E R" when all four bombers have been shot down
     // if i know what i'm doing (and i don't), i might add high score functionality! no promises, though
 }
@@ -687,6 +776,7 @@ int main() {
                 update_bombers();
                 update_shots();
                 update_gunners();
+                update_particles();
                 
                 if (key[ALLEGRO_KEY_ESCAPE]) {
                     done = true;
@@ -705,11 +795,12 @@ int main() {
         
         if (redraw && al_is_event_queue_empty(queue)) {
             display_pre_draw();
-            al_clear_to_color(al_map_rgb(255, 255, 255));
+            al_clear_to_color(al_map_rgb(143, 188, 143)); // darkseagreen
             
             draw_bombers();
             draw_engines();
             draw_gunners();
+            draw_particles();
             draw_shots();
             update_hud();
             draw_hud();

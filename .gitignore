@@ -1,3 +1,5 @@
 .vscode
 ./waistgunners
 playerbomber..png
+*.exe
+libs
