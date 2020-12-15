@@ -190,6 +190,8 @@ typedef struct SPRITES {
     ALLEGRO_BITMAP* redicle;
     ALLEGRO_BITMAP* redicle2;
 
+    ALLEGRO_BITMAP* engine_dead;
+
     ALLEGRO_BITMAP* enemy_fighter;
 } SPRITES;
 
@@ -209,6 +211,8 @@ void init_sprites() {
     sprites.engine   = get_sprite(64, 30, ENGINE_WIDTH, ENGINE_HEIGHT);
     sprites.redicle  = get_sprite(46, 0, REDICLE_WIDTH, REDICLE_HEIGHT);
     sprites.redicle2 = get_sprite(65, 0, REDICLE_WIDTH, REDICLE_HEIGHT);
+
+    sprites.engine_dead = get_sprite(72, 30, ENGINE_WIDTH, ENGINE_HEIGHT);
     
     sprites.enemy_fighter = get_sprite(0, 0, ENEMY_FIGHTER_WIDTH, ENEMY_FIGHTER_HEIGHT);
 }
@@ -218,6 +222,8 @@ void destroy_sprites() {
     al_destroy_bitmap(sprites.engine);
     al_destroy_bitmap(sprites.redicle);
     al_destroy_bitmap(sprites.redicle2);
+
+    al_destroy_bitmap(sprites.engine_dead);
 
     al_destroy_bitmap(sprites.enemy_fighter);
     
@@ -389,6 +395,7 @@ typedef struct ENGINE {
 #define MAX_NUMBER_OF_ENGINES 32
 // though... i'd like to see someone build an airplane with 32 powerful engines.
 // boeing, airbus, northrop-grumman, lockheed-martin? can you guys build me an airplane with 32 jet engines? please?
+
 ENGINE engines[MAX_NUMBER_OF_ENGINES];
 
 void init_engines() {
@@ -426,6 +433,21 @@ void update_engines() {
     for (int c = 0; c < MAX_NUMBER_OF_ENGINES; c++) {
         if (!engines[c].used) continue;
         ENGINE* e = &engines[c];
+
+        // check for collisions
+        for (int d = 0; d < MAX_SHOTS; d++) {
+            SHOT* s = &shots[d];
+            if (!s->used || s->player) continue;
+            if (
+                collision(
+                    e->x, e->y, e->x + ENGINE_WIDTH, e->y + ENGINE_HEIGHT,
+                    s->x, s->y, s->x + 1, s->y + 1)
+                && !e->dead) {
+                e->health--;
+                s->used = false;
+            }
+        }
+
         if (e->health <= 0) {
             e->dead = true;
         }
@@ -439,7 +461,7 @@ void update_engines() {
 void draw_engines() {
     for (int c = 0; c < MAX_NUMBER_OF_ENGINES; c++) {
         if (!engines[c].used) continue;
-        al_draw_bitmap(sprites.engine, engines[c].x, engines[c].y, 0);
+        al_draw_bitmap(engines[c].dead ? sprites.engine_dead : sprites.engine, engines[c].x, engines[c].y, 0);
     }
 }
 
@@ -528,7 +550,7 @@ void update_enemies() {
                     if ((e->target->x - e->x) < -ENEMY_ALIGNMENT_THRESHOLD) {
                         e->dx = -ENEMY_SPEEDS[e->type];
                     }
-                    if (abs(e->target->x - e->x) < ENEMY_ALIGNMENT_THRESHOLD && e->reload <= 0) {
+                    if (abs(e->target->x - e->x) < ENEMY_ALIGNMENT_THRESHOLD && (e->reload <= 0)) {
                         if (e->data) {
                             gun_x = ENEMY_FIGHTER_GUN_RIGHT[0];
                             gun_y = ENEMY_FIGHTER_GUN_RIGHT[1];
@@ -546,6 +568,9 @@ void update_enemies() {
                         e->data   = 1 - e->data;
                     } else {
                         e->reload--;
+                    }
+                    if (e->target->dead) {
+                        e->target = NULL;
                     }
                 }
                 e->x += e->dx; e->dx = 0;
