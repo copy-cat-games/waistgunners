@@ -15,7 +15,7 @@
 /*
     compile:
     gcc -o waistgunners waistgunners.c -lm -lallegro -lallegro_font -lallegro_primitives -lallegro_audio -lallegro_acodec -lallegro_image
-    x86_64-w64-mingw32-gcc -I/home/sugarleaf/Runtimes/allegro/include -B /home/sugarleaf/Runtimes/allegro/bin -o waistgunners waistgunners.c -lm -l allegro -lallegro_font -lallegro_primitives -lallegro_audio -lallegro_acodec -lallegro_image
+    x86_64-w64-mingw32-gcc -B./libs -o waistgunners waistgunners.c -lm -l allegro -lallegro_font -lallegro_primitives -lallegro_audio -lallegro_acodec -lallegro_image
 
 */
 
@@ -680,7 +680,7 @@ GUNNER* add_gunner(int x, int y, float min, float max) {
 void update_gunners() {
     GUNNER* gunner;
     for (int c = 0; c < MAX_NUMBER_OF_GUNNERS; c++) {
-        if (!gunners[c].active) continue;
+        if (!gunners[c].active || !gunners[c].used) continue;
         gunner        = &(gunners[c]);
         gunner->angle = get_angle(gunner->x, gunner->y, mouse_x, mouse_y);
         // angle_between(&(gunner->angle), gunner->max_angle, gunner->min_angle);
@@ -763,6 +763,7 @@ void init_bombers() {
                 break;
         }
         b->x = x; b->y = y;
+        b->down = false;
         b->engines[0] = add_engine(x + ENGINE_1_X, y + ENGINE_1_Y);
         b->engines[1] = add_engine(x + ENGINE_2_X, y + ENGINE_2_Y);
         b->gunners[0] = add_gunner(x + GUNNER_1_X, y + GUNNER_1_Y, PI / 2, 3 * PI / 2);
@@ -823,12 +824,29 @@ void update_bombers() {
     }
     
     // remember to check for dead engines!
+    for (int c = 0; c < MAX_NUMBER_OF_BOMBERS; c++) {
+        BOMBER* b = &bombers[c];
+        if (b->down && b->y < BUFFER_HEIGHT + 10 && frames % 3 == 0) {
+            b->y += BOMBER_SPEED;
+            
+            b->engines[0]->y += BOMBER_SPEED;
+            b->gunners[0]->y += BOMBER_SPEED;
+            b->engines[1]->y += BOMBER_SPEED;
+            b->gunners[1]->y += BOMBER_SPEED;
+        }
+        if (b->engines[0]->dead && b->engines[1]->dead && !b->down) {
+            b->down = true;
+
+            b->gunners[0]->active = false;
+            b->gunners[1]->active = false;
+        }
+    }
 }
 
 void draw_bombers() {
     for (int c = 0; c < MAX_NUMBER_OF_BOMBERS; c++) {
         BOMBER* b = &(bombers[c]);
-        if (!b->down) {
+        if (b->y < BUFFER_HEIGHT) {
             al_draw_bitmap(sprites.bomber, b->x, b->y, 0);
         }
     }
@@ -923,7 +941,7 @@ void draw_hud() {
         }
         al_draw_textf(font, PLAYER_DEBUG_COLOUR, BUFFER_WIDTH / 2, BUFFER_HEIGHT / 2 + 12, ALLEGRO_ALIGN_CENTER, "SCORE: %06ld", score);
         // uncomment the line below when you've implemented restarting
-        // al_draw_text(font, al_map_rgb(255, 0, 0), BUFFER_WIDTH / 2, BUFFER_HEIGHT / 2 + 24, ALLEGRO_ALIGN_CENTER, "press ENTER to play again");
+        al_draw_text(font, al_map_rgb(255, 0, 0), BUFFER_WIDTH / 2, BUFFER_HEIGHT / 2 + 24, ALLEGRO_ALIGN_CENTER, "press ENTER to play again");
     }
     // remember to also display "G A M E   O V E R" when all four bombers have been shot down
     // if i know what i'm doing (and i don't), i might add high score functionality! no promises, though
@@ -933,6 +951,24 @@ void draw_hud() {
 
 void reset() {
     // reset the game so that the player can play again!
+    for (int a = 0; a < MAX_NUMBER_OF_ENGINES; a++) {
+        engines[a].used = false;
+    }
+    for (int b = 0; b < MAX_NUMBER_OF_PARTICLES; b++) {
+        particles[b].used = false;
+    }
+    for (int c = 0; c < MAX_SHOTS; c++) {
+        shots[c].used = false;
+    }
+    for (int d = 0; d < MAX_NUMBER_OF_ENEMIES; d++) {
+        enemies[d].used = false;
+    }
+    for (int e = 0; e < MAX_NUMBER_OF_GUNNERS; e++) {
+        gunners[e].used = gunners[e].active = false;
+    }
+    display_score = score = frames = 0;
+    init_engines();
+    init_bombers();
 }
 
 int main() {
@@ -983,8 +1019,6 @@ int main() {
     
     ALLEGRO_EVENT event;
     al_start_timer(timer);
-
-    add_enemy(BUFFER_WIDTH / 2, ENEMY_TYPE_FIGHTER);
     
     while (1) {
         al_wait_for_event(queue, &event);
@@ -1001,7 +1035,7 @@ int main() {
                     update_particles();
                 }
                 
-                if (frames % 150 == 1) {
+                if (frames % 150 == 1 && game_state == PLAYING) {
                     add_enemy(between(0, BUFFER_WIDTH), ENEMY_TYPE_FIGHTER);
                 }
 
@@ -1038,7 +1072,8 @@ int main() {
                             game_state = PLAYING;
                             break;
                         case GAME_OVER:
-                            puts("restarting... please implement that...");
+                            reset();
+                            game_state = MAIN_MENU;
                             break;
                     }
                 }

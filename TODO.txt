@@ -1,11 +1,13 @@
 - general
     - [ ] figure out a direction for the game
+    - [ ] a credits screen
 
 - programmming
-    - [x] game states: main menu, credits menu, pause menu, gameplay, and game over
-    - [ ] restarting the game
+    - [x] game states: main menu, pause menu, gameplay, and game over
+    - [x] restarting the game
     - [ ] more enemies
     - [ ] tweaks and balancing
+    - [ ] enemies need to die gracefully, not just disappear off the face of the earth
 
 - art
     - [ ] splash screen for main menu
