@@ -37,7 +37,7 @@ float between_f(float lower, float higher) {
     return lower + ((float) rand() / (float) RAND_MAX) * (higher - lower);
 }
 
-bool collision(int ax1, int ay1, int ax2, int ay2, int bx1, int by1, int bx2, int by2) {
+bool collision(float ax1, float ay1, float ax2, float ay2, float bx1, float by1, float bx2, float by2) {
     if (
         ax1 > bx2 ||
         ax2 < bx1 ||
@@ -234,7 +234,7 @@ void destroy_sprites() {
 
 /* effects -- i'll figure it out later ---------------------------------------------- */
 
-#define MAX_NUMBER_OF_PARTICLES 512
+#define MAX_NUMBER_OF_PARTICLES 65536
 
 const int MAX_LIFETIMES[] = { 75 };
 
@@ -317,10 +317,6 @@ void draw_particles() {
                 break;
         }
     }
-    // reticle should be drawn on top of everything else
-    al_draw_bitmap(mouse ? sprites.redicle2 : sprites.redicle,
-        mouse_x - (REDICLE_WIDTH / 2), mouse_y - (REDICLE_HEIGHT / 2), 0
-    );
 }
 
 /* shots ------------------------------------------------------------------------ */
@@ -421,12 +417,21 @@ ENGINE* add_engine(int x, int y) {
 
 ENGINE* select_random_engine() {
     ENGINE* e;
-    while (1) {
+    for (int i = 0; i < 10; i++) {
         e = &engines[between(0, MAX_NUMBER_OF_ENGINES - 1)];
         if (e->used && !e->dead) {
             return e;
         }
     }
+    return NULL;
+}
+
+bool engines_still_alive() {
+    for (int c = 0; c < MAX_NUMBER_OF_ENGINES; c++) {
+        ENGINE* e = &engines[c];
+        if (e->used && !e->dead) return true;
+    }
+    return false;
 }
 
 void update_engines() {
@@ -472,7 +477,7 @@ void draw_engines() {
 #define ENEMY_INACCURACY          PI / 100
 
 const int MAX_ENEMY_HEALTH[] = { 15, 10, 25 };
-const int REWARDS[]          = { 10, 25, 50 }; // point awards for destroying enemies
+const int REWARDS[]          = { 100, 250, 500 }; // point awards for destroying enemies
 const int ENEMY_SPEEDS[]     = { 2, 5, 1 }; // fighter is slow, jet is fast, destroyer is *very* slow
 const int ENEMY_RELOADS[]    = { 25, 15, 20 }; // other two values are placeholders
 
@@ -577,6 +582,26 @@ void update_enemies() {
                 if (frames % 2) e->y += e->dy;
 
                 // remember to do collision detection!
+                for (int d = 0; d < MAX_SHOTS; d++) {
+                    SHOT* s = &shots[d];
+                    if (s->used && s->player &&
+                        s->x >= e->x && s->x <= (e->x + ENEMY_FIGHTER_WIDTH) &&
+                        s->y >= e->y && s->y <= (e->y + ENEMY_FIGHTER_HEIGHT)
+                    ) {
+                        e->health -= 1;
+                        s->used    = false;
+                    }
+                }
+                if (between(0, MAX_ENEMY_HEALTH[e->type]) > e->health) {
+                    add_particle(
+                        e->x + ENEMY_FIGHTER_WIDTH / 2, e->y + ENEMY_FIGHTER_WIDTH / 2,
+                        between_f(-0.1, 0.1), -1, SMOKE_PARTICLE, e->health > 10 ? 0 : 1
+                    );
+                }
+                if (e->health <= 0) {
+                    e->used = false;
+                    score  += REWARDS[e->type];
+                }
                 break;
             case ENEMY_TYPE_JET:
                 // comes top down. aligns itself with your engines, much faster.
@@ -733,8 +758,6 @@ void init_bombers() {
         b->gunners[0] = add_gunner(x + GUNNER_1_X, y + GUNNER_1_Y, PI / 2, 3 * PI / 2);
         b->gunners[1] = add_gunner(x + GUNNER_2_X, y + GUNNER_2_Y, 3 * PI / 2, PI / 2);
     }
-
-    add_enemy(BUFFER_WIDTH / 2, ENEMY_TYPE_FIGHTER);
 }
 
 #define BOMBER_MARGIN 10 // somehow implement it so that the formation doesn't go too far off the screen
@@ -805,12 +828,18 @@ void draw_bombers() {
 
 long display_score;
 ALLEGRO_FONT* font;
+bool debug;
+
+ALLEGRO_COLOR PLAYER_DEBUG_COLOUR;
+ALLEGRO_COLOR ENEMY_DEBUG_COLOUR;
 
 void init_hud() {
     font = al_create_builtin_font();
     must_init(font, "font");
 
     display_score = 0;
+    PLAYER_DEBUG_COLOUR = al_map_rgb_f(1, 1, 0);
+    ENEMY_DEBUG_COLOUR  = al_map_rgb_f(0.6, 0, 0);
 }
 
 void update_hud() {
@@ -818,7 +847,7 @@ void update_hud() {
     for (long i = 5; i > 0; i--) {
         // not my algorithm
         long difference = 1 << i;
-        if (display_score < score - difference) {
+        if (display_score <= score - difference) {
             display_score += difference;
         }
     }
@@ -826,6 +855,37 @@ void update_hud() {
 
 void draw_hud() {
     al_draw_textf(font, al_map_rgb(255, 255, 255), 2, 2, 0, "SCORE %06ld", display_score);
+
+    al_draw_bitmap(mouse ? sprites.redicle2 : sprites.redicle,
+        mouse_x - (REDICLE_WIDTH / 2), mouse_y - (REDICLE_HEIGHT / 2), 0
+    );
+
+    if (debug) {
+        // all of the debug drawing code
+        al_draw_text(font, al_map_rgb(255, 0, 0), 2, 12, 0, "DEBUG MODE");
+
+        // show the engines' hitboxes and health
+        for (int i = 0; i < MAX_NUMBER_OF_ENGINES; i++) {
+            ENGINE* e = &engines[i];
+            if (!e->used) continue;
+            al_draw_rectangle(e->x, e->y, e->x + ENGINE_WIDTH, e->y + ENGINE_HEIGHT, PLAYER_DEBUG_COLOUR, 2);
+            al_draw_textf(font, PLAYER_DEBUG_COLOUR, e->x + ENGINE_WIDTH / 2, e->y - 10, ALLEGRO_ALIGN_CENTER, "%i", e->health);
+        }
+        
+        // show the enemies' hitboxes and health
+        for (int j = 0; j < MAX_NUMBER_OF_ENEMIES; j++) {
+            ENEMY* e = &enemies[j];
+            if (!e->used) continue;
+            switch (e->type) {
+                case ENEMY_TYPE_FIGHTER:
+                    al_draw_rectangle(e->x, e->y, e->x + ENEMY_FIGHTER_WIDTH, e->y + ENEMY_FIGHTER_HEIGHT, ENEMY_DEBUG_COLOUR, 2);
+                    al_draw_textf(font, ENEMY_DEBUG_COLOUR, e->x + ENEMY_FIGHTER_WIDTH / 2, e->y + ENEMY_FIGHTER_HEIGHT + 2, ALLEGRO_ALIGN_CENTER, "%i", e->health);
+            }
+        }
+    }
+    if (!engines_still_alive()) {
+        al_draw_text(font, al_map_rgb(255, 0, 0), BUFFER_WIDTH / 2, BUFFER_HEIGHT / 2, ALLEGRO_ALIGN_CENTER, "G A M E   O V E R");
+    }
     // remember to also display "G A M E   O V E R" when all four bombers have been shot down
     // if i know what i'm doing (and i don't), i might add high score functionality! no promises, though
 }
@@ -842,6 +902,8 @@ int main() {
     srand((unsigned) time(&t));
     // thanks, tutorialspoint!
     // https://www.tutorialspoint.com/c_standard_library/c_function_srand.htm
+
+    debug = false;
 
     must_init(al_init(), "allegro");
     must_init(al_install_keyboard(), "keyboard");
@@ -880,6 +942,8 @@ int main() {
     
     ALLEGRO_EVENT event;
     al_start_timer(timer);
+
+    add_enemy(BUFFER_WIDTH / 2, ENEMY_TYPE_FIGHTER);
     
     while (1) {
         al_wait_for_event(queue, &event);
@@ -894,6 +958,10 @@ int main() {
                 update_enemies();
                 update_particles();
                 
+                if (frames % 150 == 1) {
+                    add_enemy(between(0, BUFFER_WIDTH), ENEMY_TYPE_FIGHTER);
+                }
+
                 if (key[ALLEGRO_KEY_ESCAPE]) {
                     done = true;
                 }
@@ -904,6 +972,14 @@ int main() {
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
                 done = true;
                 break;
+            case ALLEGRO_EVENT_KEY_DOWN:
+            // disable this block for releases
+                if (event.keyboard.keycode == ALLEGRO_KEY_R) {
+                    debug = !debug;
+                }
+                if (event.keyboard.keycode == ALLEGRO_KEY_T && debug) {
+                    add_enemy(BUFFER_WIDTH / 2, ENEMY_TYPE_FIGHTER);
+                }
         }
         if (done) break;
         
