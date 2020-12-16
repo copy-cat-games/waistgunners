@@ -1,0 +1,13 @@
+- general
+    - [ ] figure out a direction for the game
+
+- programmming
+    - [x] game states: main menu, credits menu, pause menu, gameplay, and game over
+    - [ ] restarting the game
+    - [ ] more enemies
+    - [ ] tweaks and balancing
+
+- art
+    - [ ] splash screen for main menu
+    - [ ] sprites for enemies
+    - [ ] sprites for the background

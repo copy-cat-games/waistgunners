@@ -23,6 +23,16 @@
 
 long frames, score;
 
+typedef enum GAME_STATE {
+    MAIN_MENU = 0,
+    CREDITS,
+    PAUSED,
+    PLAYING,
+    GAME_OVER
+} GAME_STATE;
+
+int game_state;
+
 void must_init(bool test, char* description) {
     if (test) return;
     printf("can't initialize %s!\n", description);
@@ -549,13 +559,13 @@ void update_enemies() {
                     e->target = select_random_engine();
                 } else {
                     // align itself with the target
-                    if ((e->target->x - e->x) > ENEMY_ALIGNMENT_THRESHOLD) {
+                    if ((e->target->x - e->x) > ENEMY_ALIGNMENT_THRESHOLD && e->y > 0) {
                         e->dx = ENEMY_SPEEDS[e->type];
                     }
-                    if ((e->target->x - e->x) < -ENEMY_ALIGNMENT_THRESHOLD) {
+                    if ((e->target->x - e->x) < -ENEMY_ALIGNMENT_THRESHOLD && e->y > 0) {
                         e->dx = -ENEMY_SPEEDS[e->type];
                     }
-                    if (abs(e->target->x - e->x) < ENEMY_ALIGNMENT_THRESHOLD && (e->reload <= 0)) {
+                    if (abs(e->target->x - e->x) < ENEMY_ALIGNMENT_THRESHOLD && (e->reload <= 0) && e->y + ENEMY_FIGHTER_HEIGHT > BUFFER_HEIGHT / 4) {
                         if (e->data) {
                             gun_x = ENEMY_FIGHTER_GUN_RIGHT[0];
                             gun_y = ENEMY_FIGHTER_GUN_RIGHT[1];
@@ -843,7 +853,7 @@ void init_hud() {
 }
 
 void update_hud() {
-    if (frames % 2) return;
+    if (frames % 5) return;
     for (long i = 5; i > 0; i--) {
         // not my algorithm
         long difference = 1 << i;
@@ -854,8 +864,6 @@ void update_hud() {
 }
 
 void draw_hud() {
-    al_draw_textf(font, al_map_rgb(255, 255, 255), 2, 2, 0, "SCORE %06ld", display_score);
-
     al_draw_bitmap(mouse ? sprites.redicle2 : sprites.redicle,
         mouse_x - (REDICLE_WIDTH / 2), mouse_y - (REDICLE_HEIGHT / 2), 0
     );
@@ -882,9 +890,40 @@ void draw_hud() {
                     al_draw_textf(font, ENEMY_DEBUG_COLOUR, e->x + ENEMY_FIGHTER_WIDTH / 2, e->y + ENEMY_FIGHTER_HEIGHT + 2, ALLEGRO_ALIGN_CENTER, "%i", e->health);
             }
         }
+
+        // draw the enemies' firing zone
+        al_draw_line(0, BUFFER_HEIGHT / 4, BUFFER_WIDTH, BUFFER_HEIGHT / 4, al_map_rgb_f(1, 1, 1), 1);
     }
-    if (!engines_still_alive()) {
-        al_draw_text(font, al_map_rgb(255, 0, 0), BUFFER_WIDTH / 2, BUFFER_HEIGHT / 2, ALLEGRO_ALIGN_CENTER, "G A M E   O V E R");
+
+    if (game_state == PLAYING || game_state == PAUSED) {
+        // show the player's score
+        al_draw_textf(font, al_map_rgb(255, 255, 255), 2, 2, 0, "SCORE %06ld", display_score);
+    }
+
+    if (game_state == PAUSED) {
+        // draw the words "PAUSED"
+        al_draw_text(font, PLAYER_DEBUG_COLOUR, BUFFER_WIDTH / 2, BUFFER_HEIGHT / 2, ALLEGRO_ALIGN_CENTER, "PAUSED");
+        al_draw_text(font, PLAYER_DEBUG_COLOUR, BUFFER_WIDTH / 2, BUFFER_HEIGHT / 2 + 12, ALLEGRO_ALIGN_CENTER, "press P to unpause");
+    }
+
+    if (game_state == MAIN_MENU) {
+        // draw the splash sprite and the welcome text
+        al_draw_filled_rounded_rectangle(25, 25, BUFFER_WIDTH - 25, BUFFER_HEIGHT / 4, 5, 5, al_map_rgb(20, 140, 20));
+        al_draw_text(font, PLAYER_DEBUG_COLOUR, BUFFER_WIDTH / 2, 37, ALLEGRO_ALIGN_CENTER, "WAISTGUNNERS");
+
+        if (frames % 75 > 37) {
+            al_draw_text(font, PLAYER_DEBUG_COLOUR, BUFFER_WIDTH / 2, BUFFER_HEIGHT / 2, ALLEGRO_ALIGN_CENTRE, "press ENTER to start");
+        }
+    }
+
+    if (game_state == GAME_OVER) {
+        if (frames % 75 > 37) {
+            // blink!
+            al_draw_text(font, al_map_rgb(255, 0, 0), BUFFER_WIDTH / 2, BUFFER_HEIGHT / 2, ALLEGRO_ALIGN_CENTER, "GAME OVER");
+        }
+        al_draw_textf(font, PLAYER_DEBUG_COLOUR, BUFFER_WIDTH / 2, BUFFER_HEIGHT / 2 + 12, ALLEGRO_ALIGN_CENTER, "SCORE: %06ld", score);
+        // uncomment the line below when you've implemented restarting
+        // al_draw_text(font, al_map_rgb(255, 0, 0), BUFFER_WIDTH / 2, BUFFER_HEIGHT / 2 + 24, ALLEGRO_ALIGN_CENTER, "press ENTER to play again");
     }
     // remember to also display "G A M E   O V E R" when all four bombers have been shot down
     // if i know what i'm doing (and i don't), i might add high score functionality! no promises, though
@@ -936,6 +975,8 @@ int main() {
     
     frames = 0;
     score  = 0;
+
+    game_state = MAIN_MENU;
     
     bool done   = false;
     bool redraw = false;
@@ -951,19 +992,21 @@ int main() {
         switch (event.type) {
             case ALLEGRO_EVENT_TIMER:
                 update_mouse();
-                update_engines();
-                update_bombers();
-                update_shots();
-                update_gunners();
-                update_enemies();
-                update_particles();
+                if (game_state == PLAYING || game_state == GAME_OVER) {
+                    update_engines();
+                    update_bombers();
+                    update_shots();
+                    update_gunners();
+                    update_enemies();
+                    update_particles();
+                }
                 
                 if (frames % 150 == 1) {
                     add_enemy(between(0, BUFFER_WIDTH), ENEMY_TYPE_FIGHTER);
                 }
 
-                if (key[ALLEGRO_KEY_ESCAPE]) {
-                    done = true;
+                if (!engines_still_alive() && game_state == PLAYING) {
+                    game_state = GAME_OVER;
                 }
                 
                 redraw = true;
@@ -980,6 +1023,26 @@ int main() {
                 if (event.keyboard.keycode == ALLEGRO_KEY_T && debug) {
                     add_enemy(BUFFER_WIDTH / 2, ENEMY_TYPE_FIGHTER);
                 }
+                if (event.keyboard.keycode == ALLEGRO_KEY_P || event.keyboard.keycode == ALLEGRO_KEY_ESCAPE) {
+                    // let's do this Yanderedev style! IF STATEMENTS GALORE
+                    if (game_state == PLAYING) {
+                        game_state = PAUSED;
+                    } else if (game_state == PAUSED) {
+                        game_state = PLAYING;
+                    }
+                }
+                if (event.keyboard.keycode == ALLEGRO_KEY_ENTER || event.keyboard.keycode == ALLEGRO_KEY_PAD_ENTER) {
+                    // depends on the game state
+                    switch (game_state) {
+                        case MAIN_MENU:
+                            game_state = PLAYING;
+                            break;
+                        case GAME_OVER:
+                            puts("restarting... please implement that...");
+                            break;
+                    }
+                }
+                break;
         }
         if (done) break;
         
