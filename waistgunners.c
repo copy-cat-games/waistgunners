@@ -15,7 +15,7 @@
 /*
     compile:
     gcc -o waistgunners waistgunners.c -lm -lallegro -lallegro_font -lallegro_primitives -lallegro_audio -lallegro_acodec -lallegro_image
-    x86_64-w64-mingw32-gcc -B./libs -o waistgunners waistgunners.c -lm -l allegro -lallegro_font -lallegro_primitives -lallegro_audio -lallegro_acodec -lallegro_image
+    x86_64-w64-mingw32-gcc -I/home/sugarleaf/Runtimes/allegro/include -B./libs -o waistgunners waistgunners.c -lm -l allegro -lallegro_font -lallegro_primitives -lallegro_audio -lallegro_acodec -lallegro_image
 
 */
 
@@ -203,6 +203,8 @@ typedef struct SPRITES {
     ALLEGRO_BITMAP* engine_dead;
 
     ALLEGRO_BITMAP* enemy_fighter;
+    ALLEGRO_BITMAP* enemy_imposter;
+    ALLEGRO_BITMAP* enemy_engine;
 } SPRITES;
 
 SPRITES sprites;
@@ -217,14 +219,16 @@ void init_sprites() {
     sprites._sprite_sheet = al_load_bitmap("spritesheet.png");
     must_init(sprites._sprite_sheet, "main spritesheet");
     
-    sprites.bomber   = get_sprite(0, 29, BOMBER_WIDTH, BOMBER_HEIGHT);
+    sprites.bomber   = get_sprite(0, 30, BOMBER_WIDTH, BOMBER_HEIGHT);
     sprites.engine   = get_sprite(64, 30, ENGINE_WIDTH, ENGINE_HEIGHT);
     sprites.redicle  = get_sprite(46, 0, REDICLE_WIDTH, REDICLE_HEIGHT);
     sprites.redicle2 = get_sprite(65, 0, REDICLE_WIDTH, REDICLE_HEIGHT);
 
     sprites.engine_dead = get_sprite(72, 30, ENGINE_WIDTH, ENGINE_HEIGHT);
     
-    sprites.enemy_fighter = get_sprite(0, 0, ENEMY_FIGHTER_WIDTH, ENEMY_FIGHTER_HEIGHT);
+    sprites.enemy_fighter  = get_sprite(0, 0, ENEMY_FIGHTER_WIDTH, ENEMY_FIGHTER_HEIGHT);
+    sprites.enemy_imposter = get_sprite(0, 88, BOMBER_WIDTH, BOMBER_HEIGHT);
+    sprites.enemy_engine   = get_sprite(64, 88, ENGINE_WIDTH, ENGINE_HEIGHT);
 }
 
 void destroy_sprites() {
@@ -236,6 +240,8 @@ void destroy_sprites() {
     al_destroy_bitmap(sprites.engine_dead);
 
     al_destroy_bitmap(sprites.enemy_fighter);
+    al_destroy_bitmap(sprites.enemy_imposter);
+    al_destroy_bitmap(sprites.enemy_engine);
     
     al_destroy_bitmap(sprites._sprite_sheet);
 }
@@ -480,167 +486,9 @@ void draw_engines() {
     }
 }
 
-/* enemies ---------------------------------------------------------------------- */
-
-#define MAX_NUMBER_OF_ENEMIES     64
-#define ENEMY_ALIGNMENT_THRESHOLD 10
-#define ENEMY_INACCURACY          PI / 100
-
-const int MAX_ENEMY_HEALTH[] = { 15, 10, 25 };
-const int REWARDS[]          = { 100, 250, 500 }; // point awards for destroying enemies
-const int ENEMY_SPEEDS[]     = { 2, 5, 1 }; // fighter is slow, jet is fast, destroyer is *very* slow
-const int ENEMY_RELOADS[]    = { 25, 15, 20 }; // other two values are placeholders
-
-const int ENEMY_FIGHTER_GUN_LEFT[]  = { 6, 21 };
-const int ENEMY_FIGHTER_GUN_RIGHT[] = { 18, 21 };
-
-typedef enum ENEMY_TYPE {
-    ENEMY_TYPE_FIGHTER = 0,
-    ENEMY_TYPE_JET,
-    ENEMY_TYPE_DESTROYER
-    
-    // more to come?
-} ENEMY_TYPE;
-
-typedef struct ENEMY {
-    int x, y;
-    int dx, dy;
-    ENEMY_TYPE type;
-    int health;
-    int shot_timer;
-    ENGINE* target;
-    bool used;
-    int data;
-    int reload;
-} ENEMY;
-
-ENEMY enemies[MAX_NUMBER_OF_ENEMIES];
-
-void add_enemy(int x, ENEMY_TYPE type) {
-    for (int c = 0; c < MAX_NUMBER_OF_ENEMIES; c++) {
-        if (enemies[c].used) continue;
-        ENEMY* e = &enemies[c];
-        e->x     = x;
-        e->y     = -100;
-        e->type  = type;
-        e->used  = true;
-        e->data  = 0;
-
-        e->health = MAX_ENEMY_HEALTH[e->type];
-        e->target = NULL;
-        e->reload = between(0, ENEMY_RELOADS[e->type]);
-        return;
-    }
-}
-
-void update_enemies() {
-    float angle;
-    int gun_x, gun_y;
-    for (int c = 0; c < MAX_NUMBER_OF_ENEMIES; c++) {
-        if (!enemies[c].used) continue;
-        ENEMY* e = &enemies[c];
-        switch (e->type) {
-            case ENEMY_TYPE_FIGHTER:
-                // comes top down. aligns itself with your engines. slow
-                /*
-                    enemy fighter algorithm:
-                    - if it is not 1/3 of the way down the screen, move forward
-                    - if the target is NULL, select a new target AT RANDOM
-                    - otherwise
-                        - if the target's x is greater than fighter's x, set dx to fighter's speed
-                        - if the target's x is less than the fighter's x, set dx to fighter's speed * -1
-                        - if the target's x is equal to the fighter's x and if reload is zero, shoot
-                            - get the angle from ENEMY_FIGHTER_GUNS[data] to the target
-                            - add a shot to shots
-                */
-                e->dy = e->y == (BUFFER_WIDTH / 2) ? 0 : 1;
-                if (e->target == NULL) {
-                    // choose a target
-                    e->target = select_random_engine();
-                } else {
-                    // align itself with the target
-                    if ((e->target->x - e->x) > ENEMY_ALIGNMENT_THRESHOLD && e->y > 0) {
-                        e->dx = ENEMY_SPEEDS[e->type];
-                    }
-                    if ((e->target->x - e->x) < -ENEMY_ALIGNMENT_THRESHOLD && e->y > 0) {
-                        e->dx = -ENEMY_SPEEDS[e->type];
-                    }
-                    if (abs(e->target->x - e->x) < ENEMY_ALIGNMENT_THRESHOLD && (e->reload <= 0) && e->y + ENEMY_FIGHTER_HEIGHT > BUFFER_HEIGHT / 4) {
-                        if (e->data) {
-                            gun_x = ENEMY_FIGHTER_GUN_RIGHT[0];
-                            gun_y = ENEMY_FIGHTER_GUN_RIGHT[1];
-                        } else {
-                            gun_x = ENEMY_FIGHTER_GUN_LEFT[0];
-                            gun_y = ENEMY_FIGHTER_GUN_LEFT[1];
-                        }
-                        angle = get_angle(
-                            e->x + gun_x, e->y + gun_y,
-                            e->target->x + ENGINE_WIDTH / 2, e->target->y + ENGINE_HEIGHT / 2
-                        ) + between_f(-ENEMY_INACCURACY, ENEMY_INACCURACY);
-                        add_shot(e->x + gun_x, e->y + gun_y, cos(angle), sin(angle), false);
-
-                        e->reload = ENEMY_RELOADS[e->type];
-                        e->data   = 1 - e->data;
-                    } else {
-                        e->reload--;
-                    }
-                    if (e->target->dead) {
-                        e->target = NULL;
-                    }
-                }
-                e->x += e->dx; e->dx = 0;
-                if (frames % 2) e->y += e->dy;
-
-                // remember to do collision detection!
-                for (int d = 0; d < MAX_SHOTS; d++) {
-                    SHOT* s = &shots[d];
-                    if (s->used && s->player &&
-                        s->x >= e->x && s->x <= (e->x + ENEMY_FIGHTER_WIDTH) &&
-                        s->y >= e->y && s->y <= (e->y + ENEMY_FIGHTER_HEIGHT)
-                    ) {
-                        e->health -= 1;
-                        s->used    = false;
-                    }
-                }
-                if (between(0, MAX_ENEMY_HEALTH[e->type]) > e->health) {
-                    add_particle(
-                        e->x + ENEMY_FIGHTER_WIDTH / 2, e->y + ENEMY_FIGHTER_WIDTH / 2,
-                        between_f(-0.1, 0.1), -1, SMOKE_PARTICLE, e->health > 10 ? 0 : 1
-                    );
-                }
-                if (e->health <= 0) {
-                    e->used = false;
-                    score  += REWARDS[e->type];
-                }
-                break;
-            case ENEMY_TYPE_JET:
-                // comes top down. aligns itself with your engines, much faster.
-                break;
-            case ENEMY_TYPE_DESTROYER:
-                // doom...
-                break;
-        }
-    }
-}
-
-void draw_enemies() {
-    for (int c = 0; c < MAX_NUMBER_OF_ENEMIES; c++) {
-        if (!enemies[c].used) continue;
-        ENEMY* e = &enemies[c];
-        switch (enemies[c].type) {
-            case ENEMY_TYPE_FIGHTER:
-                al_draw_bitmap(sprites.enemy_fighter, e->x, e->y, 0);
-                break;
-            case ENEMY_TYPE_JET:
-            case ENEMY_TYPE_DESTROYER:
-                break;
-        }
-    }
-}
-
 /* gunners ---------------------------------------------------------------------- */
 
-#define GUNNER_RELOAD 12
+#define GUNNER_RELOAD 60
 #define MAX_NUMBER_OF_GUNNERS 16
 #define GUNNER_LENGTH 3
 #define GUNNER_INACCURACY PI / 50 // PI / 50, or about 3.6 degrees in either direction
@@ -679,19 +527,27 @@ GUNNER* add_gunner(int x, int y, float min, float max) {
 
 void update_gunners() {
     GUNNER* gunner;
+    float shooting_angle;
     for (int c = 0; c < MAX_NUMBER_OF_GUNNERS; c++) {
         if (!gunners[c].active || !gunners[c].used) continue;
         gunner        = &(gunners[c]);
         gunner->angle = get_angle(gunner->x, gunner->y, mouse_x, mouse_y);
         // angle_between(&(gunner->angle), gunner->max_angle, gunner->min_angle);
-        if (gunner->shot_timer) {
-            gunner->shot_timer--;
-        }
-        if (!(gunner->shot_timer) && mouse) {
-            // fire a shot!
-            float shooting_angle = gunner->angle + between_f(-GUNNER_INACCURACY, GUNNER_INACCURACY);
-            add_shot(gunner->x, gunner->y, cos(shooting_angle), sin(shooting_angle), true);
-            gunner->shot_timer = GUNNER_RELOAD;
+        switch (gunner->shot_timer) {
+            case 0:
+                gunner->shot_timer = GUNNER_RELOAD;
+            case 15:
+            case 10:
+            case 5:
+                if (mouse) {
+                    // fire a shot!
+                    shooting_angle = gunner->angle + between_f(-GUNNER_INACCURACY, GUNNER_INACCURACY);
+                    add_shot(gunner->x, gunner->y, cos(shooting_angle), sin(shooting_angle), true);
+                }
+            default:
+                if (gunner->shot_timer) {
+                    gunner->shot_timer--;
+                }
         }
     }
 }
@@ -848,6 +704,265 @@ void draw_bombers() {
         BOMBER* b = &(bombers[c]);
         if (b->y < BUFFER_HEIGHT) {
             al_draw_bitmap(sprites.bomber, b->x, b->y, 0);
+        }
+    }
+}
+
+/* enemies ---------------------------------------------------------------------- */
+
+#define MAX_NUMBER_OF_ENEMIES     64
+#define ENEMY_ALIGNMENT_THRESHOLD 10
+#define ENEMY_INACCURACY          PI / 100
+
+const int MAX_ENEMY_HEALTH[] = { 15, 10, 25 };
+const int REWARDS[]          = { 100, 250, 500 }; // point awards for destroying enemies
+const int ENEMY_SPEEDS[]     = { 2, 5, 1 }; // fighter is slow, jet is fast, destroyer is *very* slow
+const int ENEMY_RELOADS[]    = { 25, 15, 20 }; // other two values are placeholders
+
+const int ENEMY_FIGHTER_GUN_LEFT[]  = { 6, 21 };
+const int ENEMY_FIGHTER_GUN_RIGHT[] = { 18, 21 };
+
+typedef enum ENEMY_TYPE {
+    ENEMY_TYPE_FIGHTER = 0,
+    ENEMY_TYPE_JET,
+    ENEMY_TYPE_IMPOSTER
+    
+    // more to come?
+} ENEMY_TYPE;
+
+typedef struct ENEMY {
+    int x, y;
+    int dx, dy;
+    ENEMY_TYPE type;
+    int health;
+    int shot_timer;
+    void* target;
+    bool used;
+    void* data;
+    int reload;
+} ENEMY;
+
+ENEMY enemies[MAX_NUMBER_OF_ENEMIES];
+
+typedef struct ENEMY_IMPOSTER_DATA {
+    ENGINE* target_engine;
+    int engine_health[2];
+} ENEMY_IMPOSTER_DATA;
+
+void add_enemy(int x, ENEMY_TYPE type) {
+    // marvel at my terrible memory management!
+
+    bool gun; // for the fighter type
+    ENEMY_IMPOSTER_DATA data; // for the imposter type
+
+    for (int c = 0; c < MAX_NUMBER_OF_ENEMIES; c++) {
+        if (enemies[c].used) continue;
+        ENEMY* e = &enemies[c];
+        e->type  = type;
+        e->used  = true;
+
+        e->health = MAX_ENEMY_HEALTH[e->type];
+        e->target = NULL;
+        e->reload = between(0, ENEMY_RELOADS[e->type]);
+        
+        // enemy type specific stuff
+        switch (e->type) {
+            case ENEMY_TYPE_FIGHTER:
+                gun     = false;
+                e->data = &gun;
+                e->x    = x;
+                e->y    = -50;
+                break;
+            case ENEMY_TYPE_IMPOSTER:
+                e->x = BUFFER_WIDTH / 2;
+                e->y = BUFFER_HEIGHT + 10;
+
+                data.target_engine    = NULL;
+                data.engine_health[0] = data.engine_health[1] = 10;
+
+                e->data = &data;
+                break;
+        }
+        return;
+    }
+}
+
+void update_enemies() {
+    float angle;
+    int gun_x, gun_y;
+    for (int c = 0; c < MAX_NUMBER_OF_ENEMIES; c++) {
+        if (!enemies[c].used) continue;
+        ENEMY* e = &enemies[c];
+        switch (e->type) {
+            case ENEMY_TYPE_FIGHTER:
+                // comes top down. aligns itself with your engines. slow
+                /*
+                    enemy fighter algorithm:
+                    - if it is not 1/3 of the way down the screen, move forward
+                    - if the target is NULL, select a new target AT RANDOM
+                    - otherwise
+                        - if the target's x is greater than fighter's x, set dx to fighter's speed
+                        - if the target's x is less than the fighter's x, set dx to fighter's speed * -1
+                        - if the target's x is equal to the fighter's x and if reload is zero, shoot
+                            - get the angle from ENEMY_FIGHTER_GUNS[data] to the target
+                            - add a shot to shots
+                */
+                e->dy = e->y == (BUFFER_WIDTH / 2) ? 0 : 1;
+                if (e->target == NULL) {
+                    // choose a target
+                    e->target = select_random_engine();
+                } else {
+                    // align itself with the target
+
+                    // cast the void* to ENGINE* for the fighter type
+                    ENGINE* target = (ENGINE*) e->target;
+                    if ((target->x - e->x) > ENEMY_ALIGNMENT_THRESHOLD && e->y > 0) {
+                        e->dx = ENEMY_SPEEDS[e->type];
+                    }
+                    if ((target->x - e->x) < -ENEMY_ALIGNMENT_THRESHOLD && e->y > 0) {
+                        e->dx = -ENEMY_SPEEDS[e->type];
+                    }
+                    if (abs(target->x - e->x) < ENEMY_ALIGNMENT_THRESHOLD && (e->reload <= 0) && e->y + ENEMY_FIGHTER_HEIGHT > BUFFER_HEIGHT / 4) {
+                        bool* gun = (bool*) e->data;
+                        if (*gun) {
+                            gun_x = ENEMY_FIGHTER_GUN_RIGHT[0];
+                            gun_y = ENEMY_FIGHTER_GUN_RIGHT[1];
+                        } else {
+                            gun_x = ENEMY_FIGHTER_GUN_LEFT[0];
+                            gun_y = ENEMY_FIGHTER_GUN_LEFT[1];
+                        }
+                        angle = get_angle(
+                            e->x + gun_x, e->y + gun_y,
+                            target->x + ENGINE_WIDTH / 2, target->y + ENGINE_HEIGHT / 2
+                        ) + between_f(-ENEMY_INACCURACY, ENEMY_INACCURACY);
+                        add_shot(e->x + gun_x, e->y + gun_y, cos(angle), sin(angle), false);
+
+                        e->reload = ENEMY_RELOADS[e->type];
+
+                        bool next = !(*gun);
+                        e->data   = &next;
+                    } else {
+                        e->reload--;
+                    }
+                    if (target->dead) {
+                        e->target = NULL;
+                    }
+                }
+                e->x += e->dx; e->dx = 0;
+                if (frames % 2) e->y += e->dy;
+
+                // remember to do collision detection!
+                for (int d = 0; d < MAX_SHOTS; d++) {
+                    SHOT* s = &shots[d];
+                    if (s->used && s->player &&
+                        s->x >= e->x && s->x <= (e->x + ENEMY_FIGHTER_WIDTH) &&
+                        s->y >= e->y && s->y <= (e->y + ENEMY_FIGHTER_HEIGHT)
+                    ) {
+                        e->health -= 1;
+                        s->used    = false;
+                    }
+                }
+                if (between(0, MAX_ENEMY_HEALTH[e->type]) > e->health) {
+                    add_particle(
+                        e->x + ENEMY_FIGHTER_WIDTH / 2, e->y + ENEMY_FIGHTER_WIDTH / 2,
+                        between_f(-0.1, 0.1), -1, SMOKE_PARTICLE, e->health > 10 ? 0 : 1
+                    );
+                }
+                if (e->health <= 0) {
+                    e->used = false;
+                    score  += REWARDS[e->type];
+                }
+                break;
+            case ENEMY_TYPE_JET:
+                // comes from the corners? strafes?
+                break;
+            case ENEMY_TYPE_IMPOSTER:
+                // flies into the formation, shoots from its two gunners, like the bomber
+                // targets individual bombers. shoots their engines.
+                // like the bomber, you must shoot the engines to down it.
+                /*
+                    enemy imposter algorithm:
+                    - if the imposter is less than 60 pixels from the bottom of the screen, move up
+                    - align itself with the middle of the screen
+                    - choose a bomber
+                    - shoot the bomber's engines with the imposter's gunners
+                    - check for collisions with the engines, not the imposter itself
+                */
+                if (e->target == NULL) {
+                    // choose a target
+                    // similar to select_random_engine()
+                    for (int i = 0; i < MAX_NUMBER_OF_BOMBERS * 2; i++) {
+                        BOMBER* b = &bombers[between(0, MAX_NUMBER_OF_BOMBERS)];
+                        if (!b->down) {
+                            e->target = b;
+                            break;
+                        }
+                    }
+                } else {
+                    BOMBER* target = (BOMBER*) e->target;
+                    ENEMY_IMPOSTER_DATA* data = (ENEMY_IMPOSTER_DATA*) e->data;
+                    // finish
+
+                    // choose an engine that is not dead
+                    data->target_engine = target->engines[1]->dead ? target->engines[0] : target->engines[1];
+
+                    // set the angle to target engine
+
+                    // check if target is dead
+                    if (target->down) {
+                        e->target == NULL;
+                    }
+                }
+                // movement
+                if (e->y > BUFFER_HEIGHT - 60 && frames % 3) {
+                    e->y--;
+                }
+
+                // check for collision
+                break;
+        }
+    }
+}
+
+void draw_enemies() {
+    for (int c = 0; c < MAX_NUMBER_OF_ENEMIES; c++) {
+        if (!enemies[c].used) continue;
+        ENEMY* e = &enemies[c];
+        switch (enemies[c].type) {
+            case ENEMY_TYPE_FIGHTER:
+                al_draw_bitmap(sprites.enemy_fighter, e->x, e->y, 0);
+                break;
+            case ENEMY_TYPE_JET:
+            case ENEMY_TYPE_IMPOSTER:
+                /*
+                    draw the engines and gunners, too!
+                */
+                al_draw_bitmap(sprites.enemy_imposter, e->x, e->y, 0);
+                ENEMY_IMPOSTER_DATA* data = (ENEMY_IMPOSTER_DATA*) e->data;
+                al_draw_bitmap(
+                    data->engine_health[0] ? sprites.enemy_engine : sprites.engine_dead,
+                    e->x + ENGINE_1_X, e->y + ENGINE_1_Y, 0
+                );
+                al_draw_bitmap(
+                    data->engine_health[1] ? sprites.enemy_engine : sprites.engine_dead,
+                    e->x + ENGINE_2_X, e->y + ENGINE_2_Y, 0
+                );
+
+                // get the angles for both gunners
+                float gunner_1_angle = data->target_engine == NULL ? 3 * PI / 2 : get_angle(e->x + GUNNER_1_X, e->y + GUNNER_1_Y, data->target_engine->x, data->target_engine->y);
+                float gunner_2_angle = data->target_engine == NULL ? 3 * PI / 2 : get_angle(e->x + GUNNER_2_X, e->y + GUNNER_2_Y, data->target_engine->x, data->target_engine->y);
+ 
+                al_draw_line(
+                    e->x + GUNNER_1_X, e->y + GUNNER_1_Y,
+                    e->x + GUNNER_1_X + cos(gunner_1_angle) * GUNNER_LENGTH, e->y + GUNNER_1_Y + sin(gunner_1_angle),
+                    al_map_rgb_f(1, 0, 0), 2
+                );
+                al_draw_line(
+                    e->x + GUNNER_2_X, e->y + GUNNER_2_Y,
+                    e->x + GUNNER_2_X + cos(gunner_2_angle) * GUNNER_LENGTH, e->y + GUNNER_2_Y + sin(gunner_2_angle),
+                    al_map_rgb_f(1, 0, 0), 2
+                );
+                break;
         }
     }
 }
@@ -1020,6 +1135,8 @@ int main() {
     ALLEGRO_EVENT event;
     al_start_timer(timer);
     
+    // add_enemy(BUFFER_WIDTH / 2, ENEMY_TYPE_IMPOSTER); // remove when imposter is perfected
+    
     while (1) {
         al_wait_for_event(queue, &event);
         
@@ -1064,6 +1181,9 @@ int main() {
                     } else if (game_state == PAUSED) {
                         game_state = PLAYING;
                     }
+                }
+                if (event.keyboard.keycode == ALLEGRO_KEY_Q && game_state != PLAYING) {
+                    done = true;
                 }
                 if (event.keyboard.keycode == ALLEGRO_KEY_ENTER || event.keyboard.keycode == ALLEGRO_KEY_PAD_ENTER) {
                     // depends on the game state
