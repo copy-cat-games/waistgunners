@@ -852,8 +852,6 @@ void update_enemies() {
 
                         *gun = 1 - *gun;
 
-                        printf("target engine is at (%i, %i)\n", target->x, target->y);
-
                         *(bool*)(e->data) = *gun;
                     } else {
                         e->reload--;
@@ -911,8 +909,8 @@ void update_enemies() {
                     for (int i = 0; i < MAX_NUMBER_OF_BOMBERS * 2; i++) {
                         BOMBER* b = &bombers[between(0, MAX_NUMBER_OF_BOMBERS)];
                         if (!b->down) {
-                            *(BOMBER*)(e->target) = *b;
-                            e->has_target         = true;
+                            e->target     = b;
+                            e->has_target = true;
                             break;
                         }
                     }
@@ -927,7 +925,18 @@ void update_enemies() {
                     }
 
                     // set the angle to target engine
+                    float angle = get_angle(
+                        e->x + GUNNER_1_X, e->y + GUNNER_1_Y,
+                        data.target_engine->x, data.target_engine->y
+                    );
 
+                    e->reload = e->reload == 0 ? ENEMY_RELOADS[ENEMY_TYPE_IMPOSTER] : e->reload - 1;
+                    if (e->reload % 5 == 0 && e->reload < 20) {
+                        add_shot(
+                            e->x + GUNNER_1_X, e->y + GUNNER_1_Y,
+                            cos(angle), sin(angle), false
+                        );
+                    }
 
                     // check if target is dead
                     if (target->down) {
@@ -1188,7 +1197,7 @@ int main() {
                 }
                 
                 if (frames % 150 == 1 && game_state == PLAYING) {
-                    add_enemy(between(0, BUFFER_WIDTH), ENEMY_TYPE_FIGHTER);
+                    // add_enemy(between(0, BUFFER_WIDTH), ENEMY_TYPE_FIGHTER);
                 }
 
                 if (!engines_still_alive() && game_state == PLAYING) {
