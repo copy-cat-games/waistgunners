@@ -740,6 +740,7 @@ typedef struct ENEMY {
     bool used;
     void* data;
     int reload;
+    bool has_target;
 } ENEMY;
 
 ENEMY enemies[MAX_NUMBER_OF_ENEMIES];
@@ -764,23 +765,32 @@ void add_enemy(int x, ENEMY_TYPE type) {
         e->health = MAX_ENEMY_HEALTH[e->type];
         e->target = NULL;
         e->reload = between(0, ENEMY_RELOADS[e->type]);
+
+        e->has_target = false;
         
         // enemy type specific stuff
         switch (e->type) {
             case ENEMY_TYPE_FIGHTER:
-                gun     = false;
-                e->data = &gun;
+                e->data = malloc(sizeof(bool));
+                gun     = true;
                 e->x    = x;
                 e->y    = -50;
+
+                e->target = malloc(sizeof(ENGINE));
+
+                *(bool*)(e->data) = gun;
                 break;
             case ENEMY_TYPE_IMPOSTER:
                 e->x = BUFFER_WIDTH / 2;
                 e->y = BUFFER_HEIGHT + 10;
 
+                e->data   = malloc(sizeof(ENEMY_IMPOSTER_DATA));
+                e->target = malloc(sizeof(BOMBER));
+
                 data.target_engine    = NULL;
                 data.engine_health[0] = data.engine_health[1] = 10;
 
-                e->data = &data;
+                *((ENEMY_IMPOSTER_DATA*) e->data) = data;
                 break;
         }
         return;
@@ -808,9 +818,10 @@ void update_enemies() {
                             - add a shot to shots
                 */
                 e->dy = e->y == (BUFFER_WIDTH / 2) ? 0 : 1;
-                if (e->target == NULL) {
+                if (!e->has_target || e->target == NULL) {
                     // choose a target
-                    e->target = select_random_engine();
+                    e->target     = select_random_engine();
+                    e->has_target = true;
                 } else {
                     // align itself with the target
 
@@ -839,13 +850,17 @@ void update_enemies() {
 
                         e->reload = ENEMY_RELOADS[e->type];
 
-                        bool next = !(*gun);
-                        e->data   = &next;
+                        *gun = 1 - *gun;
+
+                        printf("target engine is at (%i, %i)\n", target->x, target->y);
+
+                        *(bool*)(e->data) = *gun;
                     } else {
                         e->reload--;
                     }
                     if (target->dead) {
-                        e->target = NULL;
+                        e->target     = NULL;
+                        e->has_target = false;
                     }
                 }
                 e->x += e->dx; e->dx = 0;
@@ -860,6 +875,8 @@ void update_enemies() {
                     ) {
                         e->health -= 1;
                         s->used    = false;
+                        // free(e->target);
+                        // free(e->data);
                     }
                 }
                 if (between(0, MAX_ENEMY_HEALTH[e->type]) > e->health) {
@@ -888,30 +905,35 @@ void update_enemies() {
                     - shoot the bomber's engines with the imposter's gunners
                     - check for collisions with the engines, not the imposter itself
                 */
-                if (e->target == NULL) {
+                if (!e->has_target) {
                     // choose a target
                     // similar to select_random_engine()
                     for (int i = 0; i < MAX_NUMBER_OF_BOMBERS * 2; i++) {
                         BOMBER* b = &bombers[between(0, MAX_NUMBER_OF_BOMBERS)];
                         if (!b->down) {
-                            e->target = b;
+                            *(BOMBER*)(e->target) = *b;
+                            e->has_target         = true;
                             break;
                         }
                     }
                 } else {
-                    BOMBER* target = (BOMBER*) e->target;
-                    ENEMY_IMPOSTER_DATA* data = (ENEMY_IMPOSTER_DATA*) e->data;
+                    BOMBER* target           = (BOMBER*) e->target;
+                    ENEMY_IMPOSTER_DATA data = *((ENEMY_IMPOSTER_DATA*) e->data);
                     // finish
 
                     // choose an engine that is not dead
-                    data->target_engine = target->engines[1]->dead ? target->engines[0] : target->engines[1];
+                    if (data.target_engine == NULL || data.target_engine->dead) {
+                        data.target_engine = target->engines[1]->dead ? target->engines[0] : target->engines[1];
+                    }
 
                     // set the angle to target engine
 
+
                     // check if target is dead
                     if (target->down) {
-                        e->target == NULL;
+                        e->has_target = false;
                     }
+                    *(ENEMY_IMPOSTER_DATA*)(e->data) = data;
                 }
                 // movement
                 if (e->y > BUFFER_HEIGHT - 60 && frames % 3) {
@@ -919,6 +941,7 @@ void update_enemies() {
                 }
 
                 // check for collision
+                // of course, like the bombers, we check the engines
                 break;
         }
     }
@@ -1002,6 +1025,8 @@ void draw_hud() {
     );
 
     if (debug) {
+        ENEMY_IMPOSTER_DATA* data;
+
         // all of the debug drawing code
         al_draw_text(font, al_map_rgb(255, 0, 0), 2, 12, 0, "DEBUG MODE");
 
@@ -1021,6 +1046,16 @@ void draw_hud() {
                 case ENEMY_TYPE_FIGHTER:
                     al_draw_rectangle(e->x, e->y, e->x + ENEMY_FIGHTER_WIDTH, e->y + ENEMY_FIGHTER_HEIGHT, ENEMY_DEBUG_COLOUR, 2);
                     al_draw_textf(font, ENEMY_DEBUG_COLOUR, e->x + ENEMY_FIGHTER_WIDTH / 2, e->y + ENEMY_FIGHTER_HEIGHT + 2, ALLEGRO_ALIGN_CENTER, "%i", e->health);
+                    break;
+                case ENEMY_TYPE_IMPOSTER:
+                    // we'll want to also show the target engine
+
+                    data = (ENEMY_IMPOSTER_DATA*) e->data;
+                    if (data->target_engine != NULL) {
+                        ENGINE* engine = data->target_engine;
+                        al_draw_rectangle(engine->x, engine->y, engine->x + ENGINE_WIDTH, engine->y + ENGINE_HEIGHT, al_map_rgb_f(1, 0, 0), 2);
+                    }
+                    break;
             }
         }
 
@@ -1093,7 +1128,7 @@ int main() {
     // thanks, tutorialspoint!
     // https://www.tutorialspoint.com/c_standard_library/c_function_srand.htm
 
-    debug = false;
+    debug = true;
 
     must_init(al_init(), "allegro");
     must_init(al_install_keyboard(), "keyboard");
@@ -1135,7 +1170,7 @@ int main() {
     ALLEGRO_EVENT event;
     al_start_timer(timer);
     
-    // add_enemy(BUFFER_WIDTH / 2, ENEMY_TYPE_IMPOSTER); // remove when imposter is perfected
+    add_enemy(BUFFER_WIDTH / 2, ENEMY_TYPE_IMPOSTER); // remove when imposter is perfected
     
     while (1) {
         al_wait_for_event(queue, &event);

@@ -8,9 +8,12 @@
     - [ ] more enemies
         - [ ] finish ENEMY_TYPE_IMPOSTER
             - [ ] figure out its AI
-            - [ ] draw it on the screen
+            - [x] draw it on the screen
     - [ ] tweaks and balancing
     - [ ] enemies need to die gracefully, not just disappear off the face of the earth
+
+    - [ ] implement new sprites
+    - [ ] redo smoke particles
 
     - [ ] refactor ENEMY_TYPE_IMPOSTER, probably the whole. it's quite messy
 
