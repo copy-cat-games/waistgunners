@@ -876,7 +876,7 @@ void update_enemies() {
                         e->health -= 1;
                         s->used    = false;
                         // free(e->target);
-                        // free(e->data);
+                        // free(e->data); // these can cause double free() errors, not sure why. probably use valgrind to check
                     }
                 }
                 if (between(0, MAX_ENEMY_HEALTH[e->type]) > e->health) {
