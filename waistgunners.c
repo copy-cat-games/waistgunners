@@ -714,10 +714,10 @@ void draw_bombers() {
 #define ENEMY_ALIGNMENT_THRESHOLD 10
 #define ENEMY_INACCURACY          PI / 100
 
-const int MAX_ENEMY_HEALTH[] = { 15, 10, 25 };
+const int MAX_ENEMY_HEALTH[] = { 15, 10, 10 };
 const int REWARDS[]          = { 100, 250, 500 }; // point awards for destroying enemies
 const int ENEMY_SPEEDS[]     = { 2, 5, 1 }; // fighter is slow, jet is fast, destroyer is *very* slow
-const int ENEMY_RELOADS[]    = { 25, 15, 20 }; // other two values are placeholders
+const int ENEMY_RELOADS[]    = { 25, 15, 70 }; // other two values are placeholders
 
 const int ENEMY_FIGHTER_GUN_LEFT[]  = { 6, 21 };
 const int ENEMY_FIGHTER_GUN_RIGHT[] = { 18, 21 };
@@ -741,6 +741,7 @@ typedef struct ENEMY {
     void* data;
     int reload;
     bool has_target;
+    bool down;
 } ENEMY;
 
 ENEMY enemies[MAX_NUMBER_OF_ENEMIES];
@@ -748,6 +749,7 @@ ENEMY enemies[MAX_NUMBER_OF_ENEMIES];
 typedef struct ENEMY_IMPOSTER_DATA {
     ENGINE* target_engine;
     int engine_health[2];
+    bool gun;
 } ENEMY_IMPOSTER_DATA;
 
 void add_enemy(int x, ENEMY_TYPE type) {
@@ -761,6 +763,7 @@ void add_enemy(int x, ENEMY_TYPE type) {
         ENEMY* e = &enemies[c];
         e->type  = type;
         e->used  = true;
+        e->down  = false;
 
         e->health = MAX_ENEMY_HEALTH[e->type];
         e->target = NULL;
@@ -786,9 +789,11 @@ void add_enemy(int x, ENEMY_TYPE type) {
 
                 e->data   = malloc(sizeof(ENEMY_IMPOSTER_DATA));
                 e->target = malloc(sizeof(BOMBER));
+                e->reload = between(0, ENEMY_RELOADS[e->type]);
 
                 data.target_engine    = NULL;
                 data.engine_health[0] = data.engine_health[1] = 10;
+                data.gun              = true;
 
                 *((ENEMY_IMPOSTER_DATA*) e->data) = data;
                 break;
@@ -924,18 +929,16 @@ void update_enemies() {
                         data.target_engine = target->engines[1]->dead ? target->engines[0] : target->engines[1];
                     }
 
-                    // set the angle to target engine
-                    float angle = get_angle(
-                        e->x + GUNNER_1_X, e->y + GUNNER_1_Y,
-                        data.target_engine->x, data.target_engine->y
-                    );
-
-                    e->reload = e->reload == 0 ? ENEMY_RELOADS[ENEMY_TYPE_IMPOSTER] : e->reload - 1;
-                    if (e->reload % 5 == 0 && e->reload < 20) {
-                        add_shot(
-                            e->x + GUNNER_1_X, e->y + GUNNER_1_Y,
-                            cos(angle), sin(angle), false
-                        );
+                    e->reload--;
+                    if (e->reload == 0) {
+                        data.gun  = !(data.gun);
+                        e->reload = ENEMY_RELOADS[e->type];
+                    }
+                    if (e->reload % 10 == 0 && e->reload < 55) {
+                        int gun_x   = e->x + (data.gun ? GUNNER_1_X : GUNNER_2_X);
+                        int gun_y   = e->y + (data.gun ? GUNNER_1_Y : GUNNER_2_Y);
+                        float angle = get_angle(gun_x, gun_y, data.target_engine->x, data.target_engine->y);
+                        // add_shot(gun_x, gun_y, cos(angle), sin(angle), false);
                     }
 
                     // check if target is dead
@@ -951,6 +954,25 @@ void update_enemies() {
 
                 // check for collision
                 // of course, like the bombers, we check the engines
+                ENEMY_IMPOSTER_DATA data = *((ENEMY_IMPOSTER_DATA*) e->data);
+                int engine_1_x = e->x + ENGINE_1_X, engine_1_y = e->y + ENGINE_1_Y;
+                int engine_2_x = e->x + ENGINE_2_X, engine_2_y = e->y + ENGINE_2_Y;
+                for (int i = 0; i < MAX_SHOTS; i++) {
+                    
+                }
+                if (between(0, MAX_ENEMY_HEALTH[e->type]) > data.engine_health[0]) {
+                    add_particle(
+                        engine_1_x + ENGINE_WIDTH / 2, engine_1_y, between_f(-0.1, 0.1),
+                        1, SMOKE_PARTICLE, data.engine_health[0] > 3 ? 1 : 0
+                    );
+                }
+                if (between(0, MAX_ENEMY_HEALTH[e->type]) > data.engine_health[1]) {
+                    add_particle(
+                        engine_2_x + ENGINE_WIDTH / 2, engine_2_y, between_f(-0.1, 0.1),
+                        1, SMOKE_PARTICLE, data.engine_health[1] > 3 ? 1 : 0
+                    );
+                }
+                *(ENEMY_IMPOSTER_DATA*)(e->data) = data;
                 break;
         }
     }
@@ -1064,6 +1086,12 @@ void draw_hud() {
                         ENGINE* engine = data->target_engine;
                         al_draw_rectangle(engine->x, engine->y, engine->x + ENGINE_WIDTH, engine->y + ENGINE_HEIGHT, al_map_rgb_f(1, 0, 0), 2);
                     }
+                    int engine_1_x = e->x + ENGINE_1_X, engine_1_y = e->y + ENGINE_1_Y;
+                    int engine_2_x = e->x + ENGINE_2_X, engine_2_y = e->y + ENGINE_2_Y;
+                    al_draw_rectangle(engine_1_x, engine_1_y, engine_1_x + ENGINE_WIDTH, engine_1_y + ENGINE_HEIGHT, ENEMY_DEBUG_COLOUR, 2);
+                    al_draw_rectangle(engine_2_x, engine_2_y, engine_2_x + ENGINE_WIDTH, engine_2_y + ENGINE_HEIGHT, ENEMY_DEBUG_COLOUR, 2);
+                    al_draw_textf(font, ENEMY_DEBUG_COLOUR, engine_1_x + ENGINE_WIDTH / 2, engine_1_y - 12, ALLEGRO_ALIGN_CENTER, "%i", data->engine_health[0]);
+                    al_draw_textf(font, ENEMY_DEBUG_COLOUR, engine_2_x + ENGINE_WIDTH / 2, engine_2_y - 12, ALLEGRO_ALIGN_CENTER, "%i", data->engine_health[1]);
                     break;
             }
         }
