@@ -95,6 +95,32 @@ void destroy_font() {
     this is because ALLEGRO_BITMAP is not available to Swift for some reason
 */
 
+// sprites' names, as an enum, declared and defined in swallegro.h
+
+ALLEGRO_BITMAP* sprites[SPRITES_N];
+
+void load_spritesheet(const char* path) {
+    must_init(al_init_image_addon(), "image addon");
+    sprites[SPRITESHEET] = al_load_bitmap(path);
+    must_init(sprites[SPRITESHEET], "main spritesheet");
+}
+
+void load_sprite(int identifier, int start_x, int start_y, int width, int height) {
+    sprites[identifier] = al_create_sub_bitmap(sprites[SPRITESHEET], start_x, start_y, width, height);
+    must_init(sprites[identifier], "subsprite");
+}
+
+void draw_sprite(int identifier, float x, float y, int flags) {
+    al_draw_bitmap(sprites[identifier], x, y, flags);
+}
+
+void destroy_sprites() {
+    for (int c = 1; c < SPRITES_N; c++) {
+        al_destroy_bitmap(sprites[c]);
+    }
+    al_destroy_bitmap(sprites[SPRITESHEET]);
+}
+
 /*
     keyboard stuff
     not sure if i want to put the keyboard event handling here
@@ -145,4 +171,7 @@ bool event_queue_is_empty() {
     return al_is_event_queue_empty(queue);
 }
 
+int get_keyboard_code() {
+    return event.keyboard.keycode;
+}
 // don't forget code to check which key is pressed

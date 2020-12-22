@@ -3,12 +3,15 @@
     - [ ] a credits screen
 
 - programmming
-    - [x] game states: main menu, pause menu, gameplay, and game over
-    - [x] restarting the game
+    - [ ] rewrite the whole game in Swift
+    - [x] get Allegro working consistently in Swift
+    - [x] figure out how to gracefully wrap Allegro in Swift and C
+    - [ ] game states: main menu, pause menu, gameplay, and game over
+    - [ ] restarting the game
     - [ ] more enemies
-        - [x] finish ENEMY_TYPE_IMPOSTER
-            - [x] figure out its AI
-            - [x] draw it on the screen
+        - [ ] finish ENEMY_TYPE_IMPOSTER
+            - [ ] figure out its AI
+            - [ ] draw it on the screen
         - [ ] figure out ENEMY_TYPE_JET
             - [ ] figure out its AI
             - [ ] draw it on screen
@@ -18,9 +21,7 @@
     - [ ] implement new sprites
     - [ ] redo smoke particles
 
-    - [ ] refactor ENEMY_TYPE_IMPOSTER, probably the whole. it's quite messy
-
 - art
     - [ ] splash screen for main menu
-    - [ ] sprites for enemies
+    - [x] sprites for enemies
     - [ ] sprites for the background
