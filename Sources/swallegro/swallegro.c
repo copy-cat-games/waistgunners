@@ -127,7 +127,41 @@ void destroy_sprites() {
 */
 
 void initialize_keyboard() {
-    al_install_keyboard();
+    must_init(al_install_keyboard(), "keyboard");
+}
+
+/*
+    mouse stuff
+*/
+
+int mouse_x, mouse_y;
+bool mouse_down;
+ALLEGRO_MOUSE_STATE mouse_state;
+
+void initialize_mouse() {
+    must_init(al_install_mouse(), "mouse");
+    mouse_x = mouse_y = 0;
+
+    mouse_down = 0;
+}
+
+void update_mouse() {
+    al_get_mouse_state(&mouse_state);
+    mouse_x    = mouse_state.x / display_scale;
+    mouse_y    = mouse_state.y / display_scale;
+    mouse_down = al_mouse_button_down(&mouse_state, 1);
+}
+
+bool mouse_is_down() {
+    return mouse_down;
+}
+
+int get_mouse_x() {
+    return mouse_x;
+}
+
+int get_mouse_y() {
+    return mouse_y;
 }
 
 /*

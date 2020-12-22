@@ -103,10 +103,15 @@ void draw_sprite(int identifier, float x, float y, int flags);
 void destroy_sprites();
 
 /*
-    keyboard stuff
+    keyboard and mouse stuff
 */
 
 void initialize_keyboard();
+void initialize_mouse();
+void update_mouse();
+bool mouse_is_down();
+int get_mouse_x();
+int get_mouse_y();
 
 /*
     timing and event queue

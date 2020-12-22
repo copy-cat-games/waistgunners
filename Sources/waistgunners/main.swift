@@ -8,15 +8,18 @@ import Foundation
 // code in here will be run without being in a main() function
 // reduces indentation levels anyway. no more Yanderedev style
 
-var redraw  : Bool = false
-var running : Bool = true
+var redraw  : Bool  = false
+var running : Bool  = true
+var ticks   : Int64 = 0
+var score   : Int   = 0
 
-var frame : Int64 = 0
+let buffer_width  = 200
+let buffer_height = 300
+let display_scale = 2
 
 var keys : [Bool] = [Bool](repeating : false, count : ALLEGRO_KEY_MAX)
 
 let background_colour = Colour(r: 143, g: 188, b: 143, a: 1)
-let text_colour       = Colour(r: 255, g: 255, b: 255, a: 1)
 
 initialize_allegro()
 initialize_keyboard()
@@ -26,9 +29,32 @@ initialize_timer_and_event(50)
 register_display()
 register_keyboard()
 
+func reset() {
+    // resets the game
+}
+
+func update() {
+    // updates everything in the game
+    for b in bombers {
+        b.update()
+    }
+}
+
+func draw() {
+    for b in bombers {
+        b.draw()
+    }
+}
+
+func draw_bitmap(_ identifier : SPRITES, _ x : Float, _ y : Float, _ flags : Int) {
+    draw_sprite(Int32(identifier.rawValue), x, y, Int32(flags))
+}
+
 // load our sprites
 load_spritesheet("spritesheet.png")
 load_sprite(Int32(SPRITE_BOMBER.rawValue), 0, 0, Int32(BOMBER_SIZE.x), Int32(BOMBER_SIZE.y))
+
+initialize_bombers()
 
 start_timer()
 
@@ -36,6 +62,8 @@ repeat {
     let event_type = Int(wait_for_event())
     switch event_type {
         case ALLEGRO_EVENT_TIMER:
+            ticks += 1
+            update()
             redraw = true
         case ALLEGRO_EVENT_KEY_DOWN:
             keys[Int(get_keyboard_code())] = true
@@ -48,12 +76,12 @@ repeat {
             break
     }
 
-    if event_queue_is_empty() {
+    if redraw && event_queue_is_empty() {
         // redraw the screen
         start_drawing(background_colour)
-        draw_text(2, 2, "Hello Allegro from Swift!", text_colour, 0)
-        draw_sprite(Int32(SPRITE_BOMBER.rawValue), 15.0, 15.0, 0)
+        draw()
         finish_drawing()
+        redraw = false;
     }
 } while running
 
