@@ -13,7 +13,7 @@ var running : Bool  = true
 var ticks   : Int64 = 0
 var score   : Int   = 0
 
-var mouse : Vector = Vector(x : 0, y : 0)
+var mouse = (position : Vector(x : 0, y : 0), down : false)
 
 let buffer_width  = 200
 let buffer_height = 300
@@ -23,13 +23,19 @@ var keys : [Bool] = [Bool](repeating : false, count : ALLEGRO_KEY_MAX)
 
 let background_colour = Colour(r: 143, g: 188, b: 143, a: 1)
 
+// var enemies : [Enemy]  = []
+var bullets : [Bullet] = []
+
 initialize_allegro()
 initialize_keyboard()
+initialize_mouse()
 initialize_display(200, 300, 2)
 initialize_font()
 initialize_timer_and_event(50)
 register_display()
 register_keyboard()
+
+set_thickness(2) // set thiccness?
 
 func reset() {
     // resets the game
@@ -37,16 +43,53 @@ func reset() {
 
 func update() {
     // updates everything in the game
-    for b in bombers {
+
+    // update the mouse
+    update_mouse()
+    mouse.position = Vector(x : Float(get_mouse_x()), y : Float(get_mouse_y()))
+    mouse.down     = mouse_is_down()
+
+    bullets = bullets.filter { bullet in
+        return bullet.active
+    }
+
+    for b in bullets {
         b.update()
     }
+
+    // update the bombers. they will each update their engines and gunners
+    update_bombers()
 }
 
 func draw() {
+    /*
+        draw order:
+        - background (the ground, if we have one)
+        - lower clouds (coming soon!)
+        - bombers and enemies
+        - bullets
+        - particles
+        - the reticle and other hud elements
+        - debug mode elements, if debug mode is activated
+    */
     for b in bombers {
         b.draw()
     }
+
+    for b in bullets {
+        b.draw()
+    }
+
+    let reticle_position = Vector(x : Float(Int(mouse.position.x)), y : Float(Int(mouse.position.y)))
+
+    if mouse.down {
+        draw_bitmap(SPRITE_RETICLE_FIRING, position : reticle_position - (RETICLE_SIZE * 0.5), flags : 0)
+    } else {
+        draw_bitmap(SPRITE_RETICLE_AIMING, position : reticle_position - (RETICLE_SIZE * 0.5), flags : 0)
+    }
 }
+
+// sprite loading ---------------------------------------------------------------------------------------------
 
 func draw_bitmap(_ identifier : SPRITES, position : Vector, flags : Int) {
     draw_sprite(Int32(identifier.rawValue), position.x, position.y, Int32(flags))
@@ -58,8 +101,41 @@ func load_bitmap(_ identifier : SPRITES, position : Vector, size : Vector) {
 
 // load our sprites
 load_spritesheet("spritesheet.png")
-load_sprite(Int32(SPRITE_BOMBER.rawValue), 0, 0, Int32(BOMBER_SIZE.x), Int32(BOMBER_SIZE.y))
-load_bitmap(SPRITE_ENGINE, position : Vector( x : 0, y : 59), size : ENGINE_SIZE);
+
+/*
+    these constants, find a better place for them
+    i'm putting them here just for now, so we can load the sprites
+*/
+
+let RETICLE_SIZE = Vector(x : 17, y : 17)
+
+let ENEMY_FIGHTER_SIZE  = Vector(x : 37, y : 36)
+let ENEMY_JET_SIZE      = Vector(x : 30, y : 35)
+let ENEMY_IMPOSTER_SIZE = Vector(x : 66, y : 60)
+
+let ENEMY_IMPOSTER_ENGINE_SIZE = Vector(x : 8, y : 20)
+
+load_bitmap(SPRITE_BOMBER, position : Vector( x : 0, y : 0), size : BOMBER_SIZE)
+load_bitmap(SPRITE_ENGINE, position : Vector( x : 0, y : 59), size : ENGINE_SIZE)
+load_bitmap(SPRITE_ENGINE_DAMAGED, position : Vector(x : 8, y : 59), size : ENGINE_SIZE)
+load_bitmap(SPRITE_ENGINE_DEAD, position : Vector(x : 16, y : 59), size : ENGINE_SIZE)
+
+load_bitmap(SPRITE_RETICLE_AIMING, position : Vector(x : 64, y : 62), size : RETICLE_SIZE)
+load_bitmap(SPRITE_RETICLE_FIRING, position : Vector(x : 81, y : 62), size : RETICLE_SIZE)
+
+load_bitmap(SPRITE_PLAYER_BULLET_1, position : Vector( x : 48, y : 75), size : BULLET_SIZE)
+load_bitmap(SPRITE_PLAYER_BULLET_2, position : Vector( x : 52, y : 75), size : BULLET_SIZE)
+load_bitmap(SPRITE_ENEMY_BULLET_1, position : Vector(x : 56, y : 75), size : BULLET_SIZE)
+load_bitmap(SPRITE_ENEMY_BULLET_2, position : Vector(x : 60, y : 75), size : BULLET_SIZE)
+
+load_bitmap(SPRITE_ENEMY_FIGHTER, position : Vector(x : 130, y : 0), size : ENEMY_FIGHTER_SIZE)
+load_bitmap(SPRITE_ENEMY_JET_DOWN, position : Vector(x : 167, y : 0), size : ENEMY_JET_SIZE)
+load_bitmap(SPRITE_ENEMY_JET_UP, position : Vector(x : 197, y : 0), size : ENEMY_JET_SIZE)
+load_bitmap(SPRITE_ENEMY_IMPOSTER, position : Vector(x : 64, y : 0), size : ENEMY_IMPOSTER_SIZE)
+
+load_bitmap(SPRITE_ENEMY_IMPOSTER_ENGINE, position : Vector(x : 24, y : 59), size : ENEMY_IMPOSTER_ENGINE_SIZE)
+load_bitmap(SPRITE_ENEMY_IMPOSTER_ENGINE_DAMAGED, position : Vector(x : 32, y : 59), size : ENEMY_IMPOSTER_ENGINE_SIZE)
+load_bitmap(SPRITE_ENEMY_IMPOSTER_ENGINE_DEAD, position : Vector(x : 40, y : 59), size : ENEMY_IMPOSTER_ENGINE_SIZE)
 
 initialize_bombers()
 

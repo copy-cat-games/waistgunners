@@ -50,6 +50,9 @@ void initialize_display(const int b_width, const int b_height, const int scale) 
     must_init(display, "display");
     buffer  = al_create_bitmap(buffer_width, buffer_height);
     must_init(buffer, "display_buffer");
+
+    must_init(al_init_primitives_addon(), "primitives");
+    al_hide_mouse_cursor(display);
 }
 
 void destroy_display() {
@@ -87,6 +90,28 @@ void draw_text(float x, float y, const char* text, Colour colour, int flags) {
 
 void destroy_font() {
     al_destroy_font(font);
+}
+
+/*
+    lines and shapes
+*/
+
+float thickness;
+
+void set_thickness(float new_thickness) {
+    thickness = new_thickness;
+}
+
+void draw_line(float x, float y, float dx, float dy, Colour colour) {
+    al_draw_line(x, y, x + dx, y + dy, al_map_rgb(colour.r, colour.g, colour.b), thickness);
+}
+
+void draw_rectangle(float x, float y, float width, float height, Colour colour, bool filled) {
+    if (filled) {
+        al_draw_filled_rectangle(x, y, x + width, y + height, al_map_rgb(colour.r, colour.g, colour.b));
+    } else {
+        al_draw_rectangle(x, y, x + width, y + height, al_map_rgb(colour.r, colour.g, colour.b), thickness);
+    }
 }
 
 /*

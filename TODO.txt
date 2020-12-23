@@ -18,7 +18,7 @@
     - [ ] tweaks and balancing
     - [ ] enemies need to die gracefully, not just disappear off the face of the earth
 
-    - [ ] implement new sprites
+    - [x] implement new sprites
     - [ ] redo smoke particles
 
 - art

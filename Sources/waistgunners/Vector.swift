@@ -3,6 +3,14 @@ import Foundation
 struct Vector {
     var x : Float
     var y : Float
+
+    func to_string() -> String {
+        return "(\(self.x), \(self.y))"
+    }
+
+    func apply(function : (_ input : Vector) -> Vector) -> Vector {
+        return function(self)
+    }
 }
 
 func +(lhs : Vector, rhs : Vector) -> Vector {

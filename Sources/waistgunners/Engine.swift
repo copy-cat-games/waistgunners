@@ -3,7 +3,7 @@ import swallegro
 
 let maximum_engine_health = 12
 
-let ENGINE_SIZE = Vector(x : 7, y : 19)
+let ENGINE_SIZE = Vector(x : 8, y : 19)
 
 class Engine : Entity {
     var dead : Bool = false

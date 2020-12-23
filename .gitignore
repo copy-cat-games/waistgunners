@@ -5,3 +5,5 @@ libs
 build
 .build
 spritesheet (copy).png
+*.piskel
+.github
