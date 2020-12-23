@@ -1,0 +1,24 @@
+{
+    "name": "waistgunners",
+    "version": "0.3.0",
+    "description": "an arcade game. hard.",
+    "main": "main.js",
+    "scripts": {
+        "test": "electron .",
+        "start": "electron ."
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/mcgivney-game-dev/waistgunners.git"
+    },
+    "author": "",
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/mcgivney-game-dev/waistgunners/issues"
+    },
+    "homepage": "https://github.com/mcgivney-game-dev/waistgunners#readme",
+    "dependencies": {},
+    "devDependencies": {
+        "electron": "11.1.1"
+    }
+}
