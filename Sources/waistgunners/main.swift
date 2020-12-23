@@ -13,6 +13,8 @@ var running : Bool  = true
 var ticks   : Int64 = 0
 var score   : Int   = 0
 
+var mouse : Vector = Vector(x : 0, y : 0)
+
 let buffer_width  = 200
 let buffer_height = 300
 let display_scale = 2
@@ -46,13 +48,18 @@ func draw() {
     }
 }
 
-func draw_bitmap(_ identifier : SPRITES, _ x : Float, _ y : Float, _ flags : Int) {
-    draw_sprite(Int32(identifier.rawValue), x, y, Int32(flags))
+func draw_bitmap(_ identifier : SPRITES, position : Vector, flags : Int) {
+    draw_sprite(Int32(identifier.rawValue), position.x, position.y, Int32(flags))
+}
+
+func load_bitmap(_ identifier : SPRITES, position : Vector, size : Vector) {
+    load_sprite(Int32(identifier.rawValue), Int32(position.x), Int32(position.y), Int32(size.x), Int32(size.y))
 }
 
 // load our sprites
 load_spritesheet("spritesheet.png")
 load_sprite(Int32(SPRITE_BOMBER.rawValue), 0, 0, Int32(BOMBER_SIZE.x), Int32(BOMBER_SIZE.y))
+load_bitmap(SPRITE_ENGINE, position : Vector( x : 0, y : 59), size : ENGINE_SIZE);
 
 initialize_bombers()
 

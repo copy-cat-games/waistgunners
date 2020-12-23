@@ -1,17 +1,23 @@
 import Foundation
 import swallegro
 
-let BOMBER_SIZE     = Vector(x : 63, y : 57)
+let BOMBER_SIZE     = Vector(x : 63, y : 58)
 let BOMBER_ENGINES  = [Vector(x : 15, y : 11), Vector(x : 42, y : 11)]
 
 var bombers : [Bomber] = []
 
 class Bomber : Entity {
     var engines : [Engine]
+    var gunners : [Gunner]
 
     override init(pos : Vector) {
         self.engines = [
             // set up the engines
+            Engine(pos : pos + BOMBER_ENGINES[0]),
+            Engine(pos : pos + BOMBER_ENGINES[1])
+        ]
+        self.gunners = [
+            // set up the gunners
         ]
         super.init(pos : pos)
         self.size = BOMBER_SIZE
@@ -33,12 +39,29 @@ class Bomber : Entity {
         }
         if (ticks % 2 == 0) {
             self.position = self.position + motion
+            // also add the motion to the bomber's engines and gunners
+            for e in self.engines {
+                e.position = e.position + motion
+            }
+        }
+    }
+
+    func move(by motion : Vector) {
+        if (ticks % 2 == 0) {
+            self.position = self.position + motion
+            // move the engines and gunners, too
+            for e in self.engines {
+                e.position = e.position + motion
+            }
         }
     }
 
     override func draw() {
-        draw_bitmap(SPRITE_BOMBER, self.position.x, self.position.y, 0)
+        draw_bitmap(SPRITE_BOMBER, position : self.position, flags : 0)
         // also draw the engines as well
+        for e in self.engines {
+            e.draw()
+        }
     }
 }
 
@@ -66,4 +89,8 @@ func initialize_bombers() {
         }
         bombers.append(Bomber(pos : Vector(x : x, y : y)))
     }
+}
+
+func update_bombers() {
+
 }
