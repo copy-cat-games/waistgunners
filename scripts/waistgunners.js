@@ -18,7 +18,12 @@ function animate(time) {
 function update(lapse) {
     ticks++;
 
+    bullets = bullets.filter(b => {
+        return b.update().active;
+    });
+
     update_bombers();
+    update_hud();
 }
 
 function draw() {
@@ -36,6 +41,11 @@ function draw() {
     bombers.forEach(b => {
         b.draw();
     });
+
+    bullets.forEach(b => {
+        b.draw();
+    });
+
     draw_hud();
 }
 

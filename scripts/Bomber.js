@@ -6,6 +6,11 @@ const BOMBER_ENGINES = [
     new Vector(41, 10),
 ];
 
+const BOMBER_GUNNERS = [
+    new Vector(23, 35),
+    new Vector(39, 35),
+];
+
 class Bomber extends Entity {
     constructor(position) {
         super(position);
@@ -16,18 +21,24 @@ class Bomber extends Entity {
             new Engine(this.position.plus(BOMBER_ENGINES[1])),
         ];
         this.gunners = [
-            // set up the gunners
-        ]
+            new Gunner(this.position.plus(BOMBER_GUNNERS[0])),
+            new Gunner(this.position.plus(BOMBER_GUNNERS[1])),
+        ];
     }
 
     update(lapse) {
-
+        this.engines[0].update();
+        this.engines[1].update();
+        this.gunners[0].update();
+        this.gunners[1].update();
     }
 
     move(offset) {
         this.position = this.position.plus(offset);
         this.engines[0].position = this.engines[0].position.plus(offset);
         this.engines[1].position = this.engines[1].position.plus(offset);
+        this.gunners[0].position = this.gunners[0].position.plus(offset);
+        this.gunners[1].position = this.gunners[1].position.plus(offset);
     }
 
     draw() {
@@ -35,6 +46,8 @@ class Bomber extends Entity {
         context.drawImage(sprites.player_bomber, this.position.x, this.position.y);
         this.engines[0].draw();
         this.engines[1].draw();
+        this.gunners[0].draw();
+        this.gunners[1].draw();
     }
 }
 
@@ -60,10 +73,10 @@ function initialize_bombers() {
 function update_bombers(lapse) {
     var motion = new Vector(0, 0);
     if (keys[KEY_A] || keys[KEY_LEFT]) {
-        motion.x -= 1;
+        motion.x -= 0.5;
     }
     if (keys[KEY_D] || keys[KEY_RIGHT]) {
-        motion.x += 1;
+        motion.x += 0.5;
     }
     bombers.forEach(b => {
         if (b.position.x + motion.x + BOMBER_SIZE.x > BUFFER_WIDTH + 10 || b.position.x + motion.x < -10) {
@@ -72,10 +85,10 @@ function update_bombers(lapse) {
     });
 
     if (keys[KEY_W] || keys[KEY_UP]) {
-        motion.y -= 1;
+        motion.y -= 0.5;
     }
     if (keys[KEY_S] || keys[KEY_DOWN]) {
-        motion.y += 1;
+        motion.y += 0.5;
     }
     bombers.forEach(b => {
         if (b.position.y + motion.y + BOMBER_SIZE.y > BUFFER_HEIGHT + 10 || b.position.y + motion.y < -10) {
@@ -84,6 +97,7 @@ function update_bombers(lapse) {
     });
 
     bombers.forEach(b => {
+        b.update();
         b.move(motion);
     });
 }
