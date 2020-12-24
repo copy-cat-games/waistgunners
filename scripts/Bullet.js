@@ -16,7 +16,7 @@ class Bullet extends Entity {
         this.active   = (
             this.position.x > 0 && this.position.x < BUFFER_WIDTH &&
             this.position.y > 0 && this.position.y < BUFFER_HEIGHT
-        );
+        ) && this.active;
         return this;
     }
 

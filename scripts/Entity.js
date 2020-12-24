@@ -2,6 +2,8 @@
  * base class for everything in the game.
  *
  * `update()` and `draw()` should be overriden.
+ *
+ * overriding `draw_debug()` is optional.
  */
 class Entity {
     constructor(position) {
@@ -29,5 +31,9 @@ class Entity {
         if (other.position.x > this.position.x + this.size.x) return false;
         if (other.position.y > this.position.y + this.size.y) return false;
         return true;
+    }
+
+    draw_debug() {
+
     }
 }

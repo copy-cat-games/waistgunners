@@ -1,14 +1,22 @@
 const MAXIMUM_ENGINE_HEALTH = 12;
 
+const ENGINE_SIZE = new Vector(7, 18);
+
 class Engine extends Entity {
     constructor(position) {
         super(position);
         this.health   = MAXIMUM_ENGINE_HEALTH;
         this.dead     = false;
+        this.size     = ENGINE_SIZE;
     }
 
     update() {
-
+        bullets.forEach(b => {
+            if (this.collision(b) && b.owner != "player") {
+                if (this.health) this.health--;
+                b.hit();
+            }
+        });
     }
 
     draw() {
@@ -36,5 +44,17 @@ class Engine extends Entity {
         }
 
         context.drawImage(sprite, this.position.x, this.position.y);
+    }
+
+    draw_debug(hide_health) {
+        context.strokeStyle = PLAYER_DEBUG_COLOUR;
+        context.strokeRect(this.position.x, this.position.y, this.size.x, this.size.y);
+        if (hide_health) return;
+        context.save();
+        context.fillStyle = PLAYER_DEBUG_COLOUR;
+        context.textAlign    = "center";
+        context.textBaseline = "bottom";
+        context.fillText(this.health, this.position.x + this.size.x / 2, this.position.y);
+        context.restore();
     }
 }

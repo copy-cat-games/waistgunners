@@ -15,6 +15,7 @@ class Bomber extends Entity {
     constructor(position) {
         super(position);
         this.size = BOMBER_SIZE;
+        this.down = false;
 
         this.engines = [
             new Engine(this.position.plus(BOMBER_ENGINES[0])),
@@ -29,8 +30,10 @@ class Bomber extends Entity {
     update(lapse) {
         this.engines[0].update();
         this.engines[1].update();
-        this.gunners[0].update();
-        this.gunners[1].update();
+        if (!this.down) {
+            this.gunners[0].update();
+            this.gunners[1].update();
+        }
     }
 
     move(offset) {
@@ -49,11 +52,16 @@ class Bomber extends Entity {
         this.gunners[0].draw();
         this.gunners[1].draw();
     }
+
+    draw_debug(hide_health) {
+        this.engines[0].draw_debug(hide_health);
+        this.engines[1].draw_debug(hide_health);
+    }
 }
 
 function initialize_bombers() {
     for (var c = 0; c < 4; c++) {
-        var base_position = new Vector(BUFFER_WIDTH / 2 - 10, BUFFER_HEIGHT / 2 - 10);
+        var base_position = new Vector(82, 172);
         switch (c) {
             // case 0 uses the base position, at the head of the formation
             case 1:
@@ -79,6 +87,7 @@ function update_bombers(lapse) {
         motion.x += 0.5;
     }
     bombers.forEach(b => {
+        if (b.down) return;
         if (b.position.x + motion.x + BOMBER_SIZE.x > BUFFER_WIDTH + 10 || b.position.x + motion.x < -10) {
             motion.x = 0;
         }
@@ -91,6 +100,7 @@ function update_bombers(lapse) {
         motion.y += 0.5;
     }
     bombers.forEach(b => {
+        if (b.down) return;
         if (b.position.y + motion.y + BOMBER_SIZE.y > BUFFER_HEIGHT + 10 || b.position.y + motion.y < -10) {
             motion.y = 0;
         }
