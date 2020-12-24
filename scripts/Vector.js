@@ -31,4 +31,8 @@ class Vector {
         }
         return angle;
     }
+
+    to_string() {
+        return "(" + this.x + ", " + this.y + ")";
+    }
 }
