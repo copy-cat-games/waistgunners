@@ -34,9 +34,11 @@ var ticks = 0;
 var debug = false;
 var score = 0;
 
-var bullets = [];
-var enemies = [];
-var bombers = [];
+var bullets   = [];
+var enemies   = [];
+var bombers   = [];
+var particles = [];
+var clouds    = [];
 
 const BUFFER_WIDTH  = 200;
 const BUFFER_HEIGHT = 300;

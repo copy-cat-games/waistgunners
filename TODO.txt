@@ -12,12 +12,10 @@
     - [ ] tweaks and balancing
     - [ ] enemies need to die gracefully, not just disappear off the face of the earth
 
-    - [ ] implement new sprites
+    - [x] implement new sprites
     - [ ] redo smoke particles
-
-    - [ ] refactor ENEMY_TYPE_IMPOSTER, probably the whole. it's quite messy
 
 - art
     - [ ] splash screen for main menu
-    - [ ] sprites for enemies
+    - [x] sprites for enemies
     - [ ] sprites for the background

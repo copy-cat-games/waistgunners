@@ -33,7 +33,14 @@ class Entity {
         return true;
     }
 
-    draw_debug() {
+    /**
+     * gets the center of the entity.
+     */
+    get_center() {
+        return this.position.plus(this.size.times(0.5));
+    }
 
+    draw_debug() {
+        // override
     }
 }

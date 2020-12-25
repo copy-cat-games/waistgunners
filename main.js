@@ -10,7 +10,7 @@ function create_window() {
         webPreferences: {
             nodeIntegration: false,
         },
-        showDeveloperTools: true,
+        resizable: false,
         show: false,
     });
 
