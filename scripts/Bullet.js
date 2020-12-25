@@ -1,4 +1,4 @@
-const BULLET_SPEED = 2;
+const BULLET_SPEED = 3;
 const BULLET_SIZE  = new Vector(3, 3);
 
 class Bullet extends Entity {

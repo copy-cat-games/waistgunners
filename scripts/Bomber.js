@@ -27,10 +27,19 @@ class Bomber extends Entity {
         ];
     }
 
-    update(lapse) {
+    update() {
+        if (this.down && this.position.y > BUFFER_HEIGHT + this.size.y) {
+            return;
+        }
+
         this.engines[0].update();
         this.engines[1].update();
-        if (!this.down) {
+
+        this.down = this.engines[0].dead && this.engines[1].dead;
+
+        if (this.down) {
+            if (ticks % 3 == 0) this.move(new Vector(0, 1));
+        } else {
             this.gunners[0].update();
             this.gunners[1].update();
         }
@@ -45,6 +54,9 @@ class Bomber extends Entity {
     }
 
     draw() {
+        if (this.down && this.position.y > BUFFER_HEIGHT + this.size.y) {
+            return;
+        }
         // also draw the engines and the gunners
         context.drawImage(sprites.player_bomber, this.position.x, this.position.y);
         this.engines[0].draw();
@@ -108,6 +120,8 @@ function update_bombers(lapse) {
 
     bombers.forEach(b => {
         b.update();
-        b.move(motion);
+        if (!b.down) {
+            b.move(motion);
+        }
     });
 }

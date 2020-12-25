@@ -18,6 +18,8 @@ class Engine extends Entity {
             }
         });
 
+        this.dead = this.health <= 0;
+
         if (random_int(0, MAXIMUM_ENGINE_HEALTH) > this.health) {
             particles.push(new Smoke_particle(this.get_center(), new Vector(0, 1), this.health < 4));
         }

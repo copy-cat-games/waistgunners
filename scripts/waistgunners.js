@@ -7,7 +7,7 @@ function animate(time) {
     var lapse = (last_time == null) ? 0 : (time - last_time);
 
     if (game_state != "paused") {
-        update(lapse);
+        update();
     }
 
     draw();
@@ -17,7 +17,17 @@ function animate(time) {
 
 var cloud_countdown = 0;
 
-function update(lapse) {
+function reset() {
+    bombers = [];
+    initialize_bombers();
+    enemies   = [];
+    particles = [];
+    bullets   = [];
+    score     = 0;
+    ticks     = 0;
+}
+
+function update() {
     ticks++;
     cloud_countdown--;
 
@@ -46,7 +56,20 @@ function update(lapse) {
         cloud_countdown = random_int(0, 300);
     }
 
+    if (game_state == "playing") {
+        // spawn in enemies!
+        if (ticks % 75 == 0) {
+            enemies.push(new Enemy_fighter());
+        }
+    }
+
     update_hud();
+
+    if (bombers.every(b => {
+        return b.down;
+    })) {
+        game_state = "game over";
+    }
 }
 
 function draw() {

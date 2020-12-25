@@ -85,6 +85,7 @@ addEventListener("keydown", (event) => {
         case KEY_ENTER:
             switch (game_state) {
                 case "game over":
+                    reset();
                 case "credits":
                     game_state = "main menu";
                     break;
