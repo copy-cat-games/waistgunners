@@ -34,7 +34,7 @@ class Gunner extends Entity {
     }
 
     draw() {
-        var angle  = this.target.position.minus(this.position).get_angle()
+        var angle = this.target.position.minus(this.position).get_angle();
 
         context.strokeStyle = GUNNER_COLOUR;
         context.strokeWidth = 2;

@@ -25,6 +25,8 @@ function reset() {
     bullets   = [];
     score     = 0;
     ticks     = 0;
+
+    display_score = 0;
 }
 
 function update() {
@@ -60,6 +62,9 @@ function update() {
         // spawn in enemies!
         if (ticks % 75 == 0) {
             enemies.push(new Enemy_fighter());
+        }
+        if (score > 2000 && random_int(0, 50) > 48 && spawn_imposter) {
+            enemies.push(new Enemy_imposter());
         }
     }
 

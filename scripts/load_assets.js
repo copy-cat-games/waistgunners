@@ -18,7 +18,7 @@ var sprites = {
     enemy_imposter: create_sprite("sprites/enemy_imposter.png"),
     enemy_imposter_engine: create_sprite("sprites/imposter_engine.png"),
     enemy_imposter_engine_damaged: create_sprite("sprites/imposter_engine_damaged.png"),
-    enemy_imposetr_engine_dead: create_sprite("sprites/imposter_engine_dead.png"),
+    enemy_imposter_engine_dead: create_sprite("sprites/imposter_engine_dead.png"),
     enemy_bullet_1: create_sprite("sprites/enemy_bullet_1.png"),
     enemy_bullet_2: create_sprite("sprites/enemy_bullet_2.png"),
 
