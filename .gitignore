@@ -1,7 +1,7 @@
-.vscode
 ./waistgunners
 *.exe
 libs
 build
 node_modules
 spritesheet (copy).png
+*.o
