@@ -2,8 +2,8 @@
 
 unsigned char keys[ALLEGRO_KEY_MAX];
 
-void initialize_keyboard(ALLEGRO_EVENT_QUEUE* queue) {
-    al_install_keyboard();
+void initialize_keyboard() {
+    must_init(al_install_keyboard(), "keyboard");
     al_register_event_source(queue, al_get_keyboard_event_source());
     memset(keys, 0, sizeof(keys));
 }
