@@ -1,11 +1,13 @@
 #include <stdbool.h>
 #include <math.h>
 
-#ifndef VECTOR_H
-#define VECTOR_H
+#ifndef _VECTOR
+#define _VECTOR
+
 typedef struct VECTOR {
     float x; float y;
 } VECTOR;
+
 #endif
 
 VECTOR add(VECTOR a, VECTOR b);

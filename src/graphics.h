@@ -4,6 +4,11 @@
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
 #include "game_state.h"
+#include "event.h"
+#include "hud.h"
+
+#ifndef _GRAPHICS
+#define _GRAPHICS
 
 #define BUFFER_WIDTH   200
 #define BUFFER_HEIGHT  300
@@ -17,9 +22,6 @@ extern ALLEGRO_BITMAP* buffer;
 void init_display();
 void destroy_display();
 
-void display_pre_draw();
-void display_post_draw();
-
 #define BOMBER_WIDTH   63
 #define BOMBER_HEIGHT  58
 #define ENGINE_WIDTH   7
@@ -31,18 +33,28 @@ void display_post_draw();
 #define ENEMY_FIGHTER_HEIGHT 23
 
 typedef struct SPRITES {
-    ALLEGRO_BITMAP* _sprite_sheet;
+    ALLEGRO_BITMAP* spritesheet;
 
     ALLEGRO_BITMAP* bomber;
-    ALLEGRO_BITMAP* engine;
-    ALLEGRO_BITMAP* redicle;
-    ALLEGRO_BITMAP* redicle2;
+    ALLEGRO_BITMAP* bomber_engine;
+    ALLEGRO_BITMAP* bomber_engine_damaged;
+    ALLEGRO_BITMAP* bomber_engine_dead;
 
-    ALLEGRO_BITMAP* engine_dead;
+    ALLEGRO_BITMAP* player_bullet_1;
+    ALLEGRO_BITMAP* player_bullet_2;
+    ALLEGRO_BITMAP* enemy_bullet_1;
+    ALLEGRO_BITMAP* enemy_bullet_2;
 
-    ALLEGRO_BITMAP* enemy_fighter;
-    ALLEGRO_BITMAP* enemy_imposter;
-    ALLEGRO_BITMAP* enemy_engine;
+    ALLEGRO_BITMAP* fighter;
+    ALLEGRO_BITMAP* imposter;
+    ALLEGRO_BITMAP* imposter_engine;
+    ALLEGRO_BITMAP* imposter_engine_damaged;
+    ALLEGRO_BITMAP* imposter_engine_dead;
+    ALLEGRO_BITMAP* jet_up;
+    ALLEGRO_BITMAP* jet_down;
+
+    ALLEGRO_BITMAP* reticle_aiming;
+    ALLEGRO_BITMAP* reticle_firing;
 } SPRITES;
 
 extern SPRITES sprites;
@@ -51,4 +63,11 @@ extern SPRITES sprites;
 // declare it here
 
 void init_sprites();
-void destroy_spites();
+void destroy_sprites();
+
+void display_pre_draw();
+void display_post_draw();
+
+void draw();
+
+#endif

@@ -2,12 +2,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#ifndef _GAME_STATE
+#define _GAME_STATE
+
 extern long frames;
 extern long score;
 extern bool debug;
 
-#ifndef GAME_STATE
-#define GAME_STATE
 typedef enum {
     MAIN_MENU = 0,
     CREDITS,
@@ -15,9 +16,10 @@ typedef enum {
     PLAYING,
     GAME_OVER,
 } GAME_STATE;
-#endif
 
 extern int game_state;
 
 void must_init(bool test, char* description);
 void init_game();
+
+#endif
