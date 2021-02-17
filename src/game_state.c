@@ -6,6 +6,6 @@ bool debug;
 
 void must_init(bool test, char* description) {
     if (test) return;
-    printf("can't initalize %s!\n", description);
+    printf("can't initialize %s!\n", description);
     exit(1);
 }

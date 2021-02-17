@@ -1,7 +1,10 @@
 ./waistgunners
 *.exe
-libs
+lib
+include
+font
 build
+bin
 node_modules
 spritesheet (copy).png
 *.o

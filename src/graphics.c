@@ -9,6 +9,12 @@
 ALLEGRO_DISPLAY* display;
 ALLEGRO_BITMAP* buffer;
 
+#define SMALL_FONT_SIZE 9
+#define LARGE_FONT_SIZE 24
+
+ALLEGRO_FONT* small_font;
+ALLEGRO_FONT* large_font;
+
 void init_display() {
     al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
     al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
@@ -20,6 +26,14 @@ void init_display() {
     must_init(display, "display");
 
     must_init(al_init_primitives_addon(), "primitives addon");
+
+    must_init(al_init_font_addon(), "font addon");
+    must_init(al_init_ttf_addon(), "ttf addon");
+
+    small_font = al_load_ttf_font("PressStart2P-Regular.ttf", SMALL_FONT_SIZE, ALLEGRO_TTF_MONOCHROME);
+    must_init(small_font, "font");
+    large_font = al_load_ttf_font("PressStart2P-Regular.ttf", LARGE_FONT_SIZE, ALLEGRO_TTF_MONOCHROME);
+    must_init(large_font, "font");
 
     al_register_event_source(queue, al_get_display_event_source(display));
 }
@@ -147,6 +161,8 @@ void draw_hud() {
     al_draw_bitmap(mouse ? sprites.reticle_firing : sprites.reticle_aiming,
         mouse_x - (RETICLE_SIZE.x + 1) / 2, mouse_y - (RETICLE_SIZE.y + 1) / 2, 0
     );
+
+    al_draw_textf(small_font, al_map_rgb_f(1, 1, 0.5), 5, 5, 0, "%06ld", get_display_score());
 }
 
 void draw_debug() {

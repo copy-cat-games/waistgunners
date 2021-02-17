@@ -21,6 +21,9 @@ int main() {
     bool running = true;
     bool redraw  = false;
 
+    frames = 0;
+    score  = 0;
+
     al_start_timer(timer);
 
     while (running) {
@@ -36,6 +39,7 @@ int main() {
         }
 
         update_bombers();
+        update_hud();
         update_keyboard(&event);
         update_mouse();
 
@@ -46,6 +50,12 @@ int main() {
         if (redraw) {
             draw();
             redraw = false;
+            frames++;
+        }
+
+        // test
+        if (frames % 50 == 0) {
+            score += 100;
         }
     }
 

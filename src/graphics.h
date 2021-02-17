@@ -3,10 +3,13 @@
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_image.h>
 #include <allegro5/allegro_primitives.h>
+#include <allegro5/allegro_font.h>
+#include <allegro5/allegro_ttf.h>
 #include "game_state.h"
 #include "event.h"
 #include "bomber.h"
 #include "engine.h"
+#include "bullet.h"
 #include "hud.h"
 
 #ifndef _GRAPHICS
