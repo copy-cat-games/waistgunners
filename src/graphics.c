@@ -43,7 +43,7 @@ void display_post_draw(){
     al_flip_display();
 }
 
-const VECTOR BOMBER_SIZE = { .x = 64, .y = 59 };
+// const VECTOR BOMBER_SIZE = { .x = 64, .y = 59 };
 const VECTOR ENGINE_SIZE = { .x = 7,  .y = 18 };
 
 const VECTOR BULLET_SIZE = { .x = 4,  .y = 4 };
@@ -121,6 +121,28 @@ void destroy_sprites() {
     al_destroy_bitmap(sprites.spritesheet);
 }
 
+void draw_bombers() {
+    for (int c = 0; c < MAX_BOMBERS; c++) {
+        BOMBER* b = &bombers[c];
+        if (b->position.y > BUFFER_HEIGHT) continue;
+
+        al_draw_bitmap(sprites.bomber, b->position.x, b->position.y, 0);
+        for (int d = 0; d < ENGINES_PER_BOMBER; d++) {
+            ENGINE* e = b->engines[d];
+            ALLEGRO_BITMAP* sprite;
+            //mountain of if statements, Yanderedev style!
+            if (e->health <= 0) {
+                sprite = sprites.bomber_engine_dead;
+            } else if (e->health < 8) {
+                sprite = sprites.bomber_engine_damaged;
+            } else {
+                sprite = sprites.bomber_engine;
+            }
+            al_draw_bitmap(sprite, e->position.x, e->position.y, 0);
+        }
+    }
+}
+
 void draw_hud() {
     al_draw_bitmap(mouse ? sprites.reticle_firing : sprites.reticle_aiming,
         mouse_x - (RETICLE_SIZE.x + 1) / 2, mouse_y - (RETICLE_SIZE.y + 1) / 2, 0
@@ -133,6 +155,7 @@ void draw_debug() {
 
 void draw() {
     display_pre_draw();
+    draw_bombers();
     draw_hud();
     display_post_draw();
 }

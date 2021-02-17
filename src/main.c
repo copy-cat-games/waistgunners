@@ -16,6 +16,7 @@ int main() {
     init_sprites();
 
     ALLEGRO_EVENT event;
+    reset_bombers();
 
     bool running = true;
     bool redraw  = false;
@@ -34,10 +35,11 @@ int main() {
                 break;
         }
 
+        update_bombers();
         update_keyboard(&event);
         update_mouse();
 
-        if (key_is_pressed(ALLEGRO_KEY_Q)) {
+        if (key_is_pressed(ALLEGRO_KEY_Q) || key_is_pressed(ALLEGRO_KEY_ESCAPE)) {
             running = false;
         }
 

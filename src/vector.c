@@ -1,12 +1,5 @@
 #include "vector.h"
 
-#ifndef VECTOR_H
-#define VECTOR_H
-typedef struct VECTOR {
-    float x; float y;
-} VECTOR;
-#endif
-
 VECTOR add(VECTOR a, VECTOR b) {
     VECTOR result = { .x = a.x + b.x, .y = a.y + b.y };
     return result;

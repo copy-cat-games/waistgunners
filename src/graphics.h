@@ -5,6 +5,8 @@
 #include <allegro5/allegro_primitives.h>
 #include "game_state.h"
 #include "event.h"
+#include "bomber.h"
+#include "engine.h"
 #include "hud.h"
 
 #ifndef _GRAPHICS
@@ -22,15 +24,15 @@ extern ALLEGRO_BITMAP* buffer;
 void init_display();
 void destroy_display();
 
-#define BOMBER_WIDTH   63
-#define BOMBER_HEIGHT  58
-#define ENGINE_WIDTH   7
-#define ENGINE_HEIGHT  14
-#define REDICLE_WIDTH  18
-#define REDICLE_HEIGHT 18
+#define BOMBER_WIDTH   64
+#define BOMBER_HEIGHT  59
+#define ENGINE_WIDTH   8
+#define ENGINE_HEIGHT  15
+#define REDICLE_WIDTH  19
+#define REDICLE_HEIGHT 19
 
-#define ENEMY_FIGHTER_WIDTH  26
-#define ENEMY_FIGHTER_HEIGHT 23
+#define ENEMY_FIGHTER_WIDTH  27
+#define ENEMY_FIGHTER_HEIGHT 24
 
 typedef struct SPRITES {
     ALLEGRO_BITMAP* spritesheet;
@@ -68,6 +70,8 @@ void destroy_sprites();
 void display_pre_draw();
 void display_post_draw();
 
+void draw_bombers();
+void draw_hud();
 void draw();
 
 #endif
