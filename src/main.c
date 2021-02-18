@@ -17,6 +17,7 @@ int main() {
 
     ALLEGRO_EVENT event;
     reset_bombers();
+    initialize_bullets();
 
     bool running = true;
     bool redraw  = false;
@@ -31,15 +32,15 @@ int main() {
 
         switch (event.type) {
             case ALLEGRO_EVENT_TIMER:
+                update_bullets();
+                update_bombers();
+                update_hud();
                 redraw = true;
                 break;
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
                 running = false;
                 break;
         }
-
-        update_bombers();
-        update_hud();
         update_keyboard(&event);
         update_mouse();
 
@@ -51,11 +52,6 @@ int main() {
             draw();
             redraw = false;
             frames++;
-        }
-
-        // test
-        if (frames % 50 == 0) {
-            score += 100;
         }
     }
 

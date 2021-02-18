@@ -9,3 +9,4 @@ extern ALLEGRO_MOUSE_STATE mouse_state;
 
 void init_mouse();
 void update_mouse();
+VECTOR get_mouse_position();

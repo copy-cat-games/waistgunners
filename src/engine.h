@@ -14,5 +14,7 @@ typedef struct ENGINE {
 
 #define ENGINE_MAX_HEALTH 12
 
+extern VECTOR ENGINE_SIZE;
+
 ENGINE create_engine();
 void update_engine(ENGINE* engine);

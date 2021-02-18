@@ -15,6 +15,10 @@ ALLEGRO_BITMAP* buffer;
 ALLEGRO_FONT* small_font;
 ALLEGRO_FONT* large_font;
 
+ALLEGRO_COLOR score_colour;
+ALLEGRO_COLOR debug_colour;
+ALLEGRO_COLOR gunner_colour;
+
 void init_display() {
     al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
     al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
@@ -36,6 +40,10 @@ void init_display() {
     must_init(large_font, "font");
 
     al_register_event_source(queue, al_get_display_event_source(display));
+
+    score_colour  = al_map_rgb_f(1, 1, 0.75);
+    debug_colour  = al_map_rgb_f(0.75, 0, 0);
+    gunner_colour = al_map_rgb_f(1, 0, 0.9);
 }
 
 void destroy_display() {
@@ -58,9 +66,8 @@ void display_post_draw(){
 }
 
 // const VECTOR BOMBER_SIZE = { .x = 64, .y = 59 };
-const VECTOR ENGINE_SIZE = { .x = 7,  .y = 18 };
-
-const VECTOR BULLET_SIZE = { .x = 4,  .y = 4 };
+// const VECTOR ENGINE_SIZE = { .x = 7,  .y = 18 };
+// const VECTOR BULLET_SIZE = { .x = 4,  .y = 4 };
 
 const VECTOR FIGHTER_SIZE         = { .x = 33, .y = 33 };
 const VECTOR IMPOSTER_SIZE        = { .x = 66, .y = 60 };
@@ -154,6 +161,29 @@ void draw_bombers() {
             }
             al_draw_bitmap(sprite, e->position.x, e->position.y, 0);
         }
+        for (int d = 0; d < GUNNERS_PER_BOMBER; d++) {
+            GUNNER* g = b->gunners[d];
+            VECTOR scaled = scale(subtract(get_mouse_position(), g->position), 3);
+            VECTOR end    = add(g->position, scaled);
+            al_draw_line(g->position.x, g->position.y, end.x, end.y, gunner_colour, 2);
+        }
+    }
+}
+
+void draw_bullets() {
+    for (int c = 0; c < MAX_BULLETS; c++) {
+        BULLET* b = &bullets[c];
+        if (!b->used) continue;
+        ALLEGRO_BITMAP* sprite;
+        switch (b->alliance) {
+            case PLAYER_BULLET:
+                sprite = sprites.player_bullet_1;
+                break;
+            case ENEMY_BULLET:
+                sprite = sprites.enemy_bullet_1;
+                break;
+        }
+        al_draw_bitmap(sprite, b->position.x, b->position.y, 0);
     }
 }
 
@@ -172,6 +202,7 @@ void draw_debug() {
 void draw() {
     display_pre_draw();
     draw_bombers();
+    draw_bullets();
     draw_hud();
     display_post_draw();
 }

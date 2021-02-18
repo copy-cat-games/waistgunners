@@ -17,3 +17,8 @@ void update_mouse() {
     mouse_y = mouse_state.y / DISPLAY_SCALE;
     mouse   = al_mouse_button_down(&mouse_state, 1);
 }
+
+VECTOR get_mouse_position() {
+    VECTOR mouse_position = { .x = mouse_x, .y = mouse_y };
+    return mouse_position;
+}

@@ -15,4 +15,5 @@ VECTOR subtract(VECTOR a, VECTOR b);
 VECTOR multiply(VECTOR a, float factor);
 float get_length(VECTOR a);
 float angle_between(VECTOR a, VECTOR b);
+VECTOR scale(VECTOR a, float new_length);
 bool collision(VECTOR pos1, VECTOR size1, VECTOR pos2, VECTOR size2);

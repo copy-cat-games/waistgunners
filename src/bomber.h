@@ -1,5 +1,6 @@
 #include "vector.h"
 #include "engine.h"
+#include "gunner.h"
 #include "keyboard.h"
 
 #ifndef _BOMBER
@@ -12,7 +13,7 @@
 typedef struct BOMBER {
     VECTOR position; // top left corner
     ENGINE* engines[ENGINES_PER_BOMBER];
-    // i'll add the gunners later
+    GUNNER* gunners[GUNNERS_PER_BOMBER];
     bool down;
 } BOMBER;
 

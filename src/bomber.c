@@ -4,6 +4,7 @@ VECTOR formation = { .x = BUFFER_WIDTH / 2, .y = BUFFER_HEIGHT / 2 };
 
 BOMBER bombers[MAX_BOMBERS + 1];
 ENGINE engines[(MAX_BOMBERS + 1) * ENGINES_PER_BOMBER];
+GUNNER gunners[(MAX_BOMBERS + 1) * GUNNERS_PER_BOMBER];
 
 // also add an array for the gunners afterward
 
@@ -48,6 +49,13 @@ void reset_bombers() {
             engines[d + ENGINES_PER_BOMBER * c] = e;
         }
 
+        for (int d = 0; d < GUNNERS_PER_BOMBER; d++) {
+            GUNNER g = create_gunner();
+            g.position.x = x + BOMBER_GUNNERS[d].x;
+            g.position.y = y + BOMBER_GUNNERS[d].y;
+            gunners[d + GUNNERS_PER_BOMBER * c] = g;
+        }
+
         // set the bomber's gunners
 
         BOMBER b = {
@@ -55,6 +63,10 @@ void reset_bombers() {
             .engines = { // what the fuck?
                 &engines[0 + ENGINES_PER_BOMBER * c],
                 &engines[1 + ENGINES_PER_BOMBER * c]
+            },
+            .gunners = {
+                &gunners[0 + GUNNERS_PER_BOMBER * c],
+                &gunners[1 + GUNNERS_PER_BOMBER * c]
             },
             .down = false };
         bombers[c] = b;
@@ -85,10 +97,9 @@ void move_bombers(VECTOR motion) {
         for (int d = 0; d < ENGINES_PER_BOMBER; d++) {
             b->engines[d]->position = add(b->engines[d]->position, motion);
         }
-        // activate this when gunners are added
-        // for (int d = 0; d < GUNNERS_PER_BOMBER; d++) {
-        //     b->gunners[d]->position = add(b->gunners[d]->position, motion);
-        // }
+        for (int d = 0; d < GUNNERS_PER_BOMBER; d++) {
+            b->gunners[d]->position = add(b->gunners[d]->position, motion);
+        }
     }
 }
 
@@ -117,7 +128,15 @@ void update_bombers() {
         if (b->down) {
 
         } else {
+            // update the gunners
+            for (int d = 0; d < GUNNERS_PER_BOMBER; d++) {
+                update_gunner(b->gunners[d]);
+            }
+        }
 
+        // regardless of the bomber's state, update the engines
+        for (int d = 0; d < ENGINES_PER_BOMBER; d++) {
+            update_engine(b->engines[d]);
         }
     }
 }
