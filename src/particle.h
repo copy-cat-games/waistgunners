@@ -29,4 +29,4 @@ extern PARTICLE particles[MAX_PARTICLES];
 
 void update_particles();
 VECTOR get_particle_position(PARTICLE* particle);
-void add_smoke(VECTOR position, bool thick);
+void add_smoke(VECTOR position, VECTOR motion, bool thick);

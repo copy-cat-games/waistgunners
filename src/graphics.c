@@ -174,9 +174,8 @@ void draw_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
     if (fighter->dead) {
         VECTOR fighter_center = multiply(FIGHTER_SIZE, 0.5);
         VECTOR draw_center    = add(fighter->position, fighter_center);
-        float scale           = 1 - (fabs(fighter->angle) / ENEMY_FIGHTER_MAX_ANGLE) * 10;
+        float scale           = 1 - (fabs(fighter->angle) / ENEMY_FIGHTER_MAX_ANGLE) * 50;
 
-        printf("scale: %.2f\n", scale);
         al_draw_scaled_rotated_bitmap(sprites.fighter,
             fighter_center.x, fighter_center.y,
             draw_center.x, draw_center.y,
@@ -219,6 +218,14 @@ void draw_bullets() {
     }
 }
 
+void draw_smoke_particle(SMOKE_DATA* smoke) {
+    float alpha          = 1.0 - (float) smoke->lifetime / (float) MAX_SMOKE_LIFETIME;
+    ALLEGRO_COLOR colour = smoke->thick ? al_map_rgba_f(0, 0, 0, alpha) : al_map_rgba_f(0.5, 0.5, 0.5, alpha);
+    float radius         = (1.0 - alpha) * MAX_SMOKE_RADIUS;
+
+    al_draw_filled_circle(smoke->position.x, smoke->position.y, radius, colour);
+}
+
 void draw_particles() {
     for (int c = 0; c < MAX_PARTICLES; c++) {
         PARTICLE* particle = &particles[c];
@@ -226,6 +233,7 @@ void draw_particles() {
         VECTOR position = get_particle_position(particle);
         switch (particle->type) {
             case SMOKE_PARTICLE:
+                draw_smoke_particle(&(particle->data.smoke));
                 break;
         }
     }
@@ -257,6 +265,7 @@ void draw() {
     draw_enemies();
     draw_bombers();
     draw_bullets();
+    draw_particles();
     draw_hud();
     display_post_draw();
 }

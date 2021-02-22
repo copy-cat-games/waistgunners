@@ -1,5 +1,6 @@
 #include "enemy_fighter.h"
 #include "graphics.h"
+#include "particle.h"
 
 VECTOR FIGHTER_SIZE          = { .x = 32, .y = 32 };
 const VECTOR FIGHTER_GUNS[2] = {
@@ -80,4 +81,10 @@ void update_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
     }
 
     fighter->dead = fighter->health <= 0;
+
+    if (fighter->health < 10 && frames % 3 == 0) {
+        VECTOR fighter_center = add(fighter->position, multiply(FIGHTER_SIZE, 0.5));
+        VECTOR motion         = { .x = 0, .y = -1 };
+        add_smoke(fighter_center, motion, fighter->health <= 4);
+    }
 }

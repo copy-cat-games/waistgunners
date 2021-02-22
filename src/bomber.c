@@ -19,7 +19,6 @@ const VECTOR BOMBER_GUNNERS[] = {
 
 void reset_bombers() {
     formation.x = BUFFER_WIDTH / 2, formation.y = BUFFER_HEIGHT / 2;
-    // printf("formation: (%f, %f)\n", formation.x, formation.y);
     for (int c = 0; c < MAX_BOMBERS; c++) {
         // set the bomber in the formation
         float x = formation.x, y = formation.y;

@@ -45,6 +45,7 @@ int main() {
                     update_bullets();
                     update_bombers();
                     update_enemies();
+                    update_particles();
                     frames++;
                 }
                 update_hud();

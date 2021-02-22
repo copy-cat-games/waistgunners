@@ -12,6 +12,9 @@ typedef struct SMOKE_DATA {
     bool thick; // thicc?
 } SMOKE_DATA;
 
+#define MAX_SMOKE_LIFETIME 50
+#define MAX_SMOKE_RADIUS   10
+
 void update_smoke(SMOKE_DATA* smoke);
 
 #endif

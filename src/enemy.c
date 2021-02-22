@@ -32,7 +32,7 @@ void add_enemy_fighter() {
     float x = between(0, BUFFER_WIDTH);
     float y = 0; // for now
 
-    VECTOR position                 = { .x = x, .y = y };
+    VECTOR position                 = { .x = x, .y = -FIGHTER_SIZE.y };
     ENEMY_FIGHTER_DATA fighter_data = {
         .position = position,
         .target   = NULL,
@@ -56,7 +56,15 @@ void update_enemies() {
         if (!e->used) continue;
         switch (e->type) {
             case ENEMY_FIGHTER:
-                update_enemy_fighter(&(e->data.fighter));
+                ;
+                ENEMY_FIGHTER_DATA* fighter = &(e->data.fighter);
+                update_enemy_fighter(fighter);
+                if (fighter->dead && (
+                    fighter->position.x < -FIGHTER_SIZE.x ||
+                    fighter->position.x > BUFFER_WIDTH
+                )) {
+                    e->used = false;
+                }
                 break;
         }
     }
