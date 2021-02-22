@@ -62,6 +62,7 @@ typedef struct SPRITES {
 
     ALLEGRO_BITMAP* reticle_aiming;
     ALLEGRO_BITMAP* reticle_firing;
+    ALLEGRO_BITMAP* bullet_clip;
 } SPRITES;
 
 extern SPRITES sprites;

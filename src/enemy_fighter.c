@@ -19,14 +19,11 @@ void update_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
         if (fighter->side) {
             // right side
             fighter->position.x += MAX_ENEMY_FIGHTER_SPEED;
-            fighter->angle      -= ENEMY_FIGHTER_LEAN;
-
-            if (fighter->angle < -ENEMY_FIGHTER_MAX_ANGLE) fighter->angle = -ENEMY_FIGHTER_MAX_ANGLE;
+            fighter->angle       = fmaxf(fighter->angle - ENEMY_FIGHTER_LEAN,-ENEMY_FIGHTER_MAX_ANGLE);
         } else {
             // left side
             fighter->position.x -= MAX_ENEMY_FIGHTER_SPEED;
-            fighter->angle      += ENEMY_FIGHTER_LEAN;
-            if (fighter->angle > ENEMY_FIGHTER_MAX_ANGLE) fighter->angle = ENEMY_FIGHTER_MAX_ANGLE;
+            fighter->angle       = fminf(fighter->angle + ENEMY_FIGHTER_LEAN, ENEMY_FIGHTER_MAX_ANGLE);
         }
     } else {
         /*
@@ -78,6 +75,10 @@ void update_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
             b->used = false;
             fighter->health--;
         }
+    }
+
+    if (!fighter->dead && fighter->health <= 0) {
+        score += ENEMY_FIGHTER_POINTS;
     }
 
     fighter->dead = fighter->health <= 0;

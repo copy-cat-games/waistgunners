@@ -1,12 +1,13 @@
 # i have no idea what the fuck i'm doing. help.
 
-LIBS     = -lm -lallegro -lallegro_acodec -lallegro_audio -lallegro_font -lallegro_image -lallegro_primitives -lallegro_ttf
-OBJECTS  = obj/graphics.o obj/keyboard.o obj/main.o \
+LIBS = -lm -lallegro -lallegro_acodec -lallegro_audio \
+	-lallegro_font -lallegro_image -lallegro_primitives -lallegro_ttf
+OBJECTS = obj/graphics.o obj/keyboard.o obj/main.o \
 	obj/vector.o obj/game_state.o obj/event.o obj/mouse.o \
 	obj/smoke.o obj/particle.o \
 	obj/hud.o obj/bullet.o obj/gunner.o obj/engine.o obj/bomber.o \
-	obj/enemy_fighter.o obj/enemy.o
-COMPILER = gcc
+	obj/enemy_fighter.o obj/enemy_imposter.o obj/enemy.o
+COMPILER = gcc # you can also use clang, if you so desire
 
 RELEASE_ARGS = -O2 src/*.c src/*.h $(LIBS)
 WINDOWS_ARGS = -B./lib -I./include $(RELEASE_ARGS)
@@ -20,7 +21,7 @@ build/waistgunners: $(OBJECTS)
 
 obj/%.o: src/%.c
 	@echo "compiling $< ..."
-	@$(COMPILER) -c -o $@ $<
+	@$(COMPILER) -g -c -o $@ $<
 
 clean:
 	rm obj/*.o
@@ -31,7 +32,7 @@ setup:
 	mkdir obj
 
 release:
-	echo "building release..."
+	echo "building linux release..."
 	gcc -o build/waistgunners $(RELEASE_ARGS)
 	echo "done!"
 

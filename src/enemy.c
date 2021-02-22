@@ -49,6 +49,12 @@ void add_enemy_fighter() {
     add_enemy(data, ENEMY_FIGHTER);
 }
 
+int enemy_imposters = 0; // only one imposter can be on the screen at a time
+
+void add_enemy_imposter() {
+
+}
+
 void update_enemies() {
     // also handles spawning of enemies, as well
     for (int c = 0; c < MAX_ENEMIES; c++) {

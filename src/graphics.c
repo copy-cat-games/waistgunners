@@ -65,16 +65,10 @@ void display_post_draw(){
     al_flip_display();
 }
 
-// const VECTOR BOMBER_SIZE = { .x = 64, .y = 59 };
-// const VECTOR ENGINE_SIZE = { .x = 7,  .y = 18 };
-// const VECTOR BULLET_SIZE = { .x = 4,  .y = 4 };
-
-// const VECTOR FIGHTER_SIZE         = { .x = 33, .y = 33 };
-const VECTOR IMPOSTER_SIZE        = { .x = 66, .y = 60 };
-const VECTOR IMPOSTER_ENGINE_SIZE = { .x = 8,  .y = 20 };
 const VECTOR JET_SIZE             = { .x = 30, .y = 35 };
 
 const VECTOR RETICLE_SIZE = { .x = 17, .y = 17 };
+const VECTOR CLIP_SIZE    = { .x = 4,  .y = 10 };
 
 SPRITES sprites;
 
@@ -115,6 +109,7 @@ void init_sprites() {
 
     sprites.reticle_aiming = get_sprite(64, 62, RETICLE_SIZE);
     sprites.reticle_firing = get_sprite(81, 62, RETICLE_SIZE);
+    sprites.bullet_clip    = get_sprite(98, 69, CLIP_SIZE);
 }
 
 void destroy_sprites() {
@@ -138,6 +133,7 @@ void destroy_sprites() {
 
     al_destroy_bitmap(sprites.reticle_aiming);
     al_destroy_bitmap(sprites.reticle_firing);
+    al_destroy_bitmap(sprites.bullet_clip);
 
     al_destroy_bitmap(sprites.spritesheet);
 }
@@ -249,10 +245,22 @@ void draw_hud() {
     // draw the gunners' reloading
     // we first have to select a gunner that's from a bomber that's not down yet
     GUNNER* gunner = select_gunner();
-    if (gunner->shots == GUNNER_MAX_SHOTS) {
-        al_draw_textf(small_font, score_colour, 5, 20, 0, "reloading...");
-    } else {
-        al_draw_textf(small_font, score_colour, 5, 20, 0, "bullets left: %i", GUNNER_MAX_SHOTS - gunner->shots);
+    if (gunner != NULL) {
+        for (int c = 0; c < (GUNNER_MAX_SHOTS - gunner->shots); c++) {
+            al_draw_bitmap(sprites.bullet_clip, c * CLIP_SIZE.x + 5, 20, 0);
+        }
+        if (gunner->shots > 0) {
+            float reload_bar_max_width = (float) CLIP_SIZE.x * GUNNER_MAX_SHOTS;
+            float proportion           = ((float) gunner->reload / (float) GUNNER_RELOAD);
+
+            VECTOR start       = { .x = 5, .y = CLIP_SIZE.y + 23 };
+            VECTOR destination = {
+                .x = start.x + proportion * reload_bar_max_width,
+                .y = start.y + 5
+            };
+
+            al_draw_filled_rectangle(start.x, start.y, destination.x, destination.y, al_map_rgb_f(0.5, 0.5, 0));
+        }
     }
 }
 

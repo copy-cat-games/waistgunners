@@ -67,7 +67,8 @@ void reset_bombers() {
                 &gunners[0 + GUNNERS_PER_BOMBER * c],
                 &gunners[1 + GUNNERS_PER_BOMBER * c]
             },
-            .down = false };
+            .down = false
+        };
         bombers[c] = b;
     }
 }
@@ -125,7 +126,17 @@ void update_bombers() {
     for (int c = 0; c < MAX_BOMBERS; c++) {
         BOMBER* b = &bombers[c];
         if (b->down) {
+            float motion   = b->position.y > BUFFER_HEIGHT ? 0 : frames % 2;
+            b->position.y += motion;
+            for (int d = 0; d < ENGINES_PER_BOMBER; d++) {
+                ENGINE* engine      = b->engines[d];
+                engine->position.y += motion;
+            }
 
+            for (int e = 0; e < GUNNERS_PER_BOMBER; e++) {
+                GUNNER* gunner      = b->gunners[e];
+                gunner->position.y += motion;
+            }
         } else {
             // update the gunners
             for (int d = 0; d < GUNNERS_PER_BOMBER; d++) {
@@ -137,10 +148,21 @@ void update_bombers() {
         for (int d = 0; d < ENGINES_PER_BOMBER; d++) {
             update_engine(b->engines[d]);
         }
+        b->down = b->engines[0]->dead && b->engines[1]->dead;
     }
 }
 
 #define SELECTION_ATTEMPTS 10
+
+BOMBER* select_random_bomber() {
+    for (int c = 0; c < SELECTION_ATTEMPTS; c++) {
+        int r = rand() % MAX_BOMBERS;
+        if (bombers[r].down) continue;
+        return &bombers[r];
+    }
+
+    return NULL;
+}
 
 ENGINE* select_random_engine() {
     for (int c = 0; c < SELECTION_ATTEMPTS; c++) {
@@ -158,4 +180,6 @@ GUNNER* select_gunner() {
         if (b->down) continue;
         return b->gunners[0];
     }
+
+    return NULL;
 }
