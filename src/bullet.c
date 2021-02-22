@@ -2,7 +2,8 @@
 #include "graphics.h"
 
 BULLET bullets[MAX_BULLETS];
-VECTOR BULLET_SIZE = { .x = 4, .y = 4 };
+VECTOR BULLET_SIZE           = { .x = 4, .y = 4 };
+VECTOR BULLET_COLLISION_SIZE = { .x = 1, .y = 1 };
 
 void initialize_bullets() {
     for (int c = 0; c < MAX_BULLETS; c++) {

@@ -69,7 +69,7 @@ void display_post_draw(){
 // const VECTOR ENGINE_SIZE = { .x = 7,  .y = 18 };
 // const VECTOR BULLET_SIZE = { .x = 4,  .y = 4 };
 
-const VECTOR FIGHTER_SIZE         = { .x = 33, .y = 33 };
+// const VECTOR FIGHTER_SIZE         = { .x = 33, .y = 33 };
 const VECTOR IMPOSTER_SIZE        = { .x = 66, .y = 60 };
 const VECTOR IMPOSTER_ENGINE_SIZE = { .x = 8,  .y = 20 };
 const VECTOR JET_SIZE             = { .x = 30, .y = 35 };
@@ -170,6 +170,38 @@ void draw_bombers() {
     }
 }
 
+void draw_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
+    if (fighter->dead) {
+        VECTOR fighter_center = multiply(FIGHTER_SIZE, 0.5);
+        VECTOR draw_center    = add(fighter->position, fighter_center);
+        float scale           = 1 - (fabs(fighter->angle) / ENEMY_FIGHTER_MAX_ANGLE) * 10;
+
+        printf("scale: %.2f\n", scale);
+        al_draw_scaled_rotated_bitmap(sprites.fighter,
+            fighter_center.x, fighter_center.y,
+            draw_center.x, draw_center.y,
+            scale, scale,
+        fighter->angle, 0);
+    } else {
+        al_draw_bitmap(sprites.fighter, fighter->position.x, fighter->position.y, 0);
+    }
+}
+
+void draw_enemies() {
+    for (int c = 0; c < MAX_ENEMIES; c++) {
+        ENEMY* e = &enemies[c];
+        if (!e->used) continue;
+        switch (e->type) {
+            case ENEMY_FIGHTER:
+                draw_enemy_fighter(&(e->data.fighter));
+                break;
+            case ENEMY_IMPOSTER:
+                break;
+            // more enemy types to come! promise!
+        }
+    }
+}
+
 void draw_bullets() {
     for (int c = 0; c < MAX_BULLETS; c++) {
         BULLET* b = &bullets[c];
@@ -187,12 +219,33 @@ void draw_bullets() {
     }
 }
 
+void draw_particles() {
+    for (int c = 0; c < MAX_PARTICLES; c++) {
+        PARTICLE* particle = &particles[c];
+        if (!particle->used) continue;
+        VECTOR position = get_particle_position(particle);
+        switch (particle->type) {
+            case SMOKE_PARTICLE:
+                break;
+        }
+    }
+}
+
 void draw_hud() {
     al_draw_bitmap(mouse ? sprites.reticle_firing : sprites.reticle_aiming,
         mouse_x - (RETICLE_SIZE.x + 1) / 2, mouse_y - (RETICLE_SIZE.y + 1) / 2, 0
     );
 
     al_draw_textf(small_font, al_map_rgb_f(1, 1, 0.5), 5, 5, 0, "%06ld", get_display_score());
+
+    // draw the gunners' reloading
+    // we first have to select a gunner that's from a bomber that's not down yet
+    GUNNER* gunner = select_gunner();
+    if (gunner->shots == GUNNER_MAX_SHOTS) {
+        al_draw_textf(small_font, score_colour, 5, 20, 0, "reloading...");
+    } else {
+        al_draw_textf(small_font, score_colour, 5, 20, 0, "bullets left: %i", GUNNER_MAX_SHOTS - gunner->shots);
+    }
 }
 
 void draw_debug() {
@@ -201,6 +254,7 @@ void draw_debug() {
 
 void draw() {
     display_pre_draw();
+    draw_enemies();
     draw_bombers();
     draw_bullets();
     draw_hud();

@@ -21,5 +21,6 @@ extern int game_state;
 
 void must_init(bool test, char* description);
 void init_game();
+float between(float lower, float higher);
 
 #endif

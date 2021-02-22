@@ -21,6 +21,8 @@ typedef struct BULLET {
 extern BULLET bullets[MAX_BULLETS];
 extern VECTOR BULLET_SIZE;
 
+extern VECTOR BULLET_COLLISION_SIZE;
+
 void initialize_bullets();
 void destroy_bullet(BULLET* bullet);
 void add_bullet(VECTOR position, VECTOR motion, ALLIANCE alliance);

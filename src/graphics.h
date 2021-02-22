@@ -10,6 +10,8 @@
 #include "bomber.h"
 #include "engine.h"
 #include "bullet.h"
+#include "enemy.h"
+#include "particle.h"
 #include "hud.h"
 
 #ifndef _GRAPHICS
@@ -70,11 +72,6 @@ extern SPRITES sprites;
 void init_sprites();
 void destroy_sprites();
 
-void display_pre_draw();
-void display_post_draw();
-
-void draw_bombers();
-void draw_hud();
 void draw();
 
 #endif

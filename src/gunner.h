@@ -16,9 +16,9 @@ typedef struct GUNNER {
 // the values below probably need some balancing.
 // our testers will see.
 
-#define GUNNER_COOLDOWN  25
-#define GUNNER_RELOAD    150
-#define GUNNER_MAX_SHOTS 6
+#define GUNNER_COOLDOWN  5
+#define GUNNER_RELOAD    100
+#define GUNNER_MAX_SHOTS 5
 
 GUNNER create_gunner();
 void update_gunner(GUNNER* gunner);

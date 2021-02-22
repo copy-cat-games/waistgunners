@@ -5,8 +5,14 @@
 
 #include <allegro5/allegro.h>
 #include <stdio.h>
+#include <math.h>
+#include <stdlib.h>
 
 int main() {
+    // seed the rng
+    time_t t;
+    srand((unsigned) time(&t));
+
     must_init(al_init(), "allegro");
 
     init_event_and_queue();
@@ -17,13 +23,16 @@ int main() {
 
     ALLEGRO_EVENT event;
     reset_bombers();
-    initialize_bullets();
+    // initialize_bullets();
 
     bool running = true;
     bool redraw  = false;
+    bool paused  = false;
 
     frames = 0;
     score  = 0;
+
+    add_enemy_fighter();
 
     al_start_timer(timer);
 
@@ -32,14 +41,22 @@ int main() {
 
         switch (event.type) {
             case ALLEGRO_EVENT_TIMER:
-                update_bullets();
-                update_bombers();
+                if (!paused) {
+                    update_bullets();
+                    update_bombers();
+                    update_enemies();
+                    frames++;
+                }
                 update_hud();
                 redraw = true;
                 break;
             case ALLEGRO_EVENT_DISPLAY_CLOSE:
                 running = false;
                 break;
+            case ALLEGRO_EVENT_KEY_DOWN:
+                if (event.keyboard.keycode == ALLEGRO_KEY_SPACE) {
+                    paused = !paused;
+                }
         }
         update_keyboard(&event);
         update_mouse();
@@ -51,7 +68,6 @@ int main() {
         if (redraw) {
             draw();
             redraw = false;
-            frames++;
         }
     }
 

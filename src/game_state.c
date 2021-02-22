@@ -9,3 +9,7 @@ void must_init(bool test, char* description) {
     printf("can't initialize %s!\n", description);
     exit(1);
 }
+
+float between(float lower, float higher) {
+    return lower + ((float) rand() / (float) RAND_MAX) * (higher - lower);
+}

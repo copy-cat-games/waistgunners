@@ -81,7 +81,7 @@ void move_bombers(VECTOR motion) {
         VECTOR future_position = add(b->position, motion);
         if (
             future_position.x < -BOMBER_MARGIN ||
-            future_position.y < -BOMBER_MARGIN ||
+            future_position.y < (BUFFER_WIDTH / 2) ||
             future_position.x + BOMBER_SIZE.x > BUFFER_WIDTH + BOMBER_MARGIN ||
             future_position.y + BOMBER_SIZE.y > BUFFER_HEIGHT + BOMBER_MARGIN
         ) {
@@ -138,5 +138,25 @@ void update_bombers() {
         for (int d = 0; d < ENGINES_PER_BOMBER; d++) {
             update_engine(b->engines[d]);
         }
+    }
+}
+
+#define SELECTION_ATTEMPTS 10
+
+ENGINE* select_random_engine() {
+    for (int c = 0; c < SELECTION_ATTEMPTS; c++) {
+        int r = (int) floor(between(0, MAX_BOMBERS * ENGINES_PER_BOMBER));
+        if (engines[r].dead) continue;
+        return &engines[r];
+    }
+
+    return NULL;
+}
+
+GUNNER* select_gunner() {
+    for (int c = 0; c < MAX_BOMBERS; c++) {
+        BOMBER* b = &bombers[c];
+        if (b->down) continue;
+        return b->gunners[0];
     }
 }

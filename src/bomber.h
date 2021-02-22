@@ -27,4 +27,7 @@ extern BOMBER bombers[MAX_BOMBERS + 1];
 void update_bombers();
 void reset_bombers();
 
+ENGINE* select_random_engine();
+GUNNER* select_gunner();
+
 #endif
