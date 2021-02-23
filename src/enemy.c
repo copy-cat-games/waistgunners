@@ -52,11 +52,36 @@ void add_enemy_fighter() {
 int imposter_countdown = 5000;
 int enemy_imposters    = 0; // only one imposter can be on the screen at a time
 
+ENEMY_IMPOSTER_ENGINE imposter_engines[ENGINES_PER_IMPOSTER];
+ENEMY_IMPOSTER_GUNNER imposter_gunners[GUNNERS_PER_IMPOSTER];
+
 void add_enemy_imposter() {
     if (enemy_imposters) return;
-    VECTOR position                   = { .x = formation.x, .y = BUFFER_HEIGHT };
+
+    VECTOR imposter_position = { .x = formation.x, .y = BUFFER_HEIGHT };
+
+    for (int c = 0; c < ENGINES_PER_IMPOSTER; c++) {
+        VECTOR engine_position       = add(imposter_position, IMPOSTER_ENGINES[c]);
+        ENEMY_IMPOSTER_ENGINE engine = {
+            .position = engine_position,
+            .health   = ENGINE_MAX_HEALTH,
+            .dead     = false,
+        };
+        imposter_engines[c] = engine;
+    }
+    for (int c = 0; c < GUNNERS_PER_IMPOSTER; c++) {
+        VECTOR gunner_position       = add(imposter_position, IMPOSTER_GUNNERS[c]);
+        ENEMY_IMPOSTER_GUNNER gunner = {
+            .position = gunner_position,
+            .target   = NULL,
+        };
+        imposter_gunners[c] = gunner;
+    }
+
     ENEMY_IMPOSTER_DATA imposter_data = {
-        .position = position,
+        .position = imposter_position,
+        .engines  = { &imposter_engines[0], &imposter_engines[1] },
+        .gunners  = { &imposter_gunners[0], &imposter_gunners[1] },
         .target   = NULL,
         .down     = false,
     };

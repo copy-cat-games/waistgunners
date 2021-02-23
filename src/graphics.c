@@ -197,8 +197,32 @@ void draw_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
 }
 
 void draw_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
-    // for now
     al_draw_bitmap(sprites.imposter, imposter->position.x, imposter->position.y, 0);
+
+    for (int c = 0; c < ENGINES_PER_IMPOSTER; c++) {
+        ENEMY_IMPOSTER_ENGINE* engine = imposter->engines[c];
+        ALLEGRO_BITMAP* sprite;
+        if (engine->health <= 0) {
+            sprite = sprites.imposter_engine_dead;
+        } else if (engine->health < 8) {
+            sprite = sprites.imposter_engine_damaged;
+        } else {
+            sprite = sprites.imposter_engine;
+        }
+        al_draw_bitmap(sprite, engine->position.x, engine->position.y, 0);
+    }
+
+    for (int c = 0; c < GUNNERS_PER_IMPOSTER; c++) {
+        ENEMY_IMPOSTER_GUNNER* gunner = imposter->gunners[c];
+        VECTOR end                    = gunner->position;
+        if (gunner->target == NULL) {
+            end.y -= 3;
+        } else {
+            VECTOR scaled = scale(subtract(gunner->target->position, gunner->position), 3);
+            end           = add(gunner->position, scaled);
+        }
+        al_draw_line(gunner->position.x, gunner->position.y, end.x, end.y, gunner_colour, 2);
+    }
 }
 
 void draw_enemies() {

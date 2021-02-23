@@ -35,8 +35,17 @@ void update_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
 
         if (frames % 2) {
             // move
-            imposter->position.x += sign(target_position.x - imposter->position.x);
-            imposter->position.y += sign(target_position.y - imposter->position.y);
+            VECTOR motion = {
+                .x = sign(target_position.x - imposter->position.x),
+                .y = sign(target_position.y - imposter->position.y)
+            };
+            imposter->position = add(imposter->position, motion);
+            for (int c = 0; c < ENGINES_PER_IMPOSTER; c++) {
+                imposter->engines[c]->position = add(imposter->engines[c]->position, motion);
+            }
+            for (int c = 0; c < GUNNERS_PER_IMPOSTER; c++) {
+                imposter->gunners[c]->position = add(imposter->gunners[c]->position, motion);
+            }
         }
     }
 }

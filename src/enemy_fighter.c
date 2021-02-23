@@ -13,7 +13,7 @@ VECTOR FIGHTER_COLLISION_SIZE     = { .x = 10, .y = 31 };
 
 void update_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
     if (fighter->dead) {
-        fighter->position.y += MAX_ENEMY_FIGHTER_SPEED;
+        fighter->position.y += MAX_ENEMY_FIGHTER_SPEED * 2;
 
         fighter->side = (fighter->position.x + FIGHTER_SIZE.x / 2) > BUFFER_WIDTH / 2;
         if (fighter->side) {

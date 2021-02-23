@@ -14,20 +14,23 @@ WINDOWS_ARGS = -B./lib -I./include $(RELEASE_ARGS)
 
 BUILD = bin
 
-.SILENT: build/waistgunners clean setup release release_windows assets
+ASSETS = build/spritesheet.png build/PressStart2P-Regular.ttf
 
-build/waistgunners: $(OBJECTS) assets
+.SILENT: build/waistgunners clean setup release release_windows \
+	build/spritesheet.png build/PressStart2P-Regular.ttf
+
+build/waistgunners: $(OBJECTS) $(ASSETS)
 	echo "linking ..."
 	$(COMPILER) -o build/waistgunners $(OBJECTS) $(LIBS)
-	cp spritesheet.png build/spritesheet.png
-	cp PressStart2P-Regular.ttf build/PressStart2P-Regular.ttf
 	echo "done!"
 
-assets:
-	echo "copying assets..."
-	cp spritesheet.png $(BUILD)/spritesheet.png
-	cp PressStart2P-Regular.ttf $(BUILD)/PressStart2P-Regular.ttf
+build/spritesheet.png: ./spritesheet.png
+	echo "copying spritesheet..."
+	cp $< $@
 
+build/PressStart2P-Regular.ttf: ./PressStart2P-Regular.ttf
+	echo "copying font..."
+	cp $< $@
 
 obj/%.o: src/%.c
 	@echo "compiling $< ..."
@@ -42,7 +45,7 @@ setup:
 	mkdir build
 	mkdir obj
 
-release: assets
+release: $(ASSETS)
 	echo "building linux release..."
 	gcc -o build/waistgunners $(RELEASE_ARGS)
 	echo "done!"
