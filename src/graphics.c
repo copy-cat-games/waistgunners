@@ -19,9 +19,17 @@ ALLEGRO_COLOR score_colour;
 ALLEGRO_COLOR debug_colour;
 ALLEGRO_COLOR gunner_colour;
 
+ALLEGRO_PATH* path;
+
 void init_display() {
     al_set_new_display_option(ALLEGRO_SAMPLE_BUFFERS, 1, ALLEGRO_SUGGEST);
     al_set_new_display_option(ALLEGRO_SAMPLES, 8, ALLEGRO_SUGGEST);
+
+    // set the path
+    path = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
+    must_init(al_change_directory(al_path_cstr(path, ALLEGRO_NATIVE_PATH_SEP)), "path");
+    al_destroy_path(path);
+    path = 0;
 
     display = al_create_display(DISPLAY_WIDTH, DISPLAY_HEIGHT);
     must_init(display, "display");
@@ -83,6 +91,12 @@ ALLEGRO_BITMAP* get_sprite(int x, int y, VECTOR size) {
 }
 
 void init_sprites() {
+    // again, first set the path
+    path = al_get_standard_path(ALLEGRO_RESOURCES_PATH);
+    al_change_directory(al_path_cstr(path, ALLEGRO_NATIVE_PATH_SEP));
+    al_destroy_path(path);
+    path = 0;
+
     must_init(al_init_image_addon(), "image addon");
     must_init(al_init_primitives_addon(), "primitives addon");
     sprites.spritesheet = al_load_bitmap("spritesheet.png");
