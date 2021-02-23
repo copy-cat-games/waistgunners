@@ -23,7 +23,6 @@ int main() {
 
     ALLEGRO_EVENT event;
     reset_bombers();
-    // initialize_bullets();
 
     bool running = true;
     bool redraw  = false;
@@ -32,7 +31,7 @@ int main() {
     frames = 0;
     score  = 0;
 
-    add_enemy_fighter();
+    add_enemy_imposter();
 
     al_start_timer(timer);
 

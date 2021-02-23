@@ -49,10 +49,20 @@ void add_enemy_fighter() {
     add_enemy(data, ENEMY_FIGHTER);
 }
 
-int enemy_imposters = 0; // only one imposter can be on the screen at a time
+int imposter_countdown = 5000;
+int enemy_imposters    = 0; // only one imposter can be on the screen at a time
 
 void add_enemy_imposter() {
+    if (enemy_imposters) return;
+    VECTOR position                   = { .x = formation.x, .y = BUFFER_HEIGHT };
+    ENEMY_IMPOSTER_DATA imposter_data = {
+        .position = position,
+        .target   = NULL,
+        .down     = false,
+    };
+    ENEMY_DATA data = { .imposter = imposter_data };
 
+    add_enemy(data, ENEMY_IMPOSTER);
 }
 
 void update_enemies() {
@@ -71,6 +81,12 @@ void update_enemies() {
                 )) {
                     e->used = false;
                 }
+                break;
+            case ENEMY_IMPOSTER:
+                ;
+                ENEMY_IMPOSTER_DATA* imposter = &(e->data.imposter);
+                update_enemy_imposter(imposter);
+                // check for a downed imposter, then set enemy_imposters as 0
                 break;
         }
     }

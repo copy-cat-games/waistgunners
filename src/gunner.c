@@ -1,5 +1,7 @@
 #include "gunner.h"
 
+int GUNNER_MAX_SHOTS = 5;
+
 GUNNER create_gunner() {
     VECTOR position = { .x = 0, .y = 0 };
     GUNNER gunner   = { .position = position, .cooldown = 0, .shots = 0, .reload = 0 };

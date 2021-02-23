@@ -6,7 +6,9 @@
 #define _ENEMY_IMPOSTER
 
 typedef struct ENEMY_IMPOSTER_ENGINE {
-
+    VECTOR position;
+    int health;
+    bool dead;
 } ENEMY_IMPOSTER_ENGINE;
 
 typedef struct ENEMY_IMPOSTER_GUNNER {
@@ -19,14 +21,16 @@ typedef struct ENEMY_IMPOSTER_GUNNER {
 
 typedef struct ENEMY_IMPOSTER_DATA {
     VECTOR position;
-    ENEMY_IMPOSTER_ENGINE* engines[ENGINES_PER_IMPOSTER];
-    ENEMY_IMPOSTER_GUNNER* gunners[GUNNERS_PER_IMPOSTER];
+    // ENEMY_IMPOSTER_ENGINE* engines[ENGINES_PER_IMPOSTER];
+    // ENEMY_IMPOSTER_GUNNER* gunners[GUNNERS_PER_IMPOSTER];
     BOMBER* target;
     bool down;
 } ENEMY_IMPOSTER_DATA;
 
 extern VECTOR IMPOSTER_SIZE;
 extern VECTOR IMPOSTER_ENGINE_SIZE;
+extern VECTOR IMPOSTER_ENGINES[2];
+extern VECTOR IMPOSTER_GUNNERS[2];
 
 void update_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter);
 

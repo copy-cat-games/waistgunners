@@ -32,6 +32,7 @@ extern ENEMY enemies[MAX_ENEMIES];
 VECTOR get_enemy_position(ENEMY* enemy);
 void update_enemies();
 void add_enemy_fighter();
+void add_enemy_imposter();
 
 // point values for each enemy type are defined in their respective header files
 // they'll need balancing

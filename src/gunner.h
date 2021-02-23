@@ -18,7 +18,8 @@ typedef struct GUNNER {
 
 #define GUNNER_COOLDOWN  5
 #define GUNNER_RELOAD    100
-#define GUNNER_MAX_SHOTS 5
+
+extern int GUNNER_MAX_SHOTS;
 
 GUNNER create_gunner();
 void update_gunner(GUNNER* gunner);

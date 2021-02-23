@@ -101,6 +101,7 @@ void move_bombers(VECTOR motion) {
             b->gunners[d]->position = add(b->gunners[d]->position, motion);
         }
     }
+    formation = add(formation, motion);
 }
 
 void update_bombers() {

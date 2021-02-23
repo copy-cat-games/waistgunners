@@ -196,6 +196,11 @@ void draw_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
     }
 }
 
+void draw_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
+    // for now
+    al_draw_bitmap(sprites.imposter, imposter->position.x, imposter->position.y, 0);
+}
+
 void draw_enemies() {
     for (int c = 0; c < MAX_ENEMIES; c++) {
         ENEMY* e = &enemies[c];
@@ -205,6 +210,7 @@ void draw_enemies() {
                 draw_enemy_fighter(&(e->data.fighter));
                 break;
             case ENEMY_IMPOSTER:
+                draw_enemy_imposter(&(e->data.imposter));
                 break;
             // more enemy types to come! promise!
         }
