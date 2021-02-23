@@ -11,6 +11,17 @@ const VECTOR FIGHTER_GUNS[2] = {
 VECTOR FIGHTER_COLLISION_POSITION = { .x = 11, .y = 0 };
 VECTOR FIGHTER_COLLISION_SIZE     = { .x = 10, .y = 31 };
 
+#define FIGHTER_INACCURACY 0.4 // will need balancing
+
+VECTOR get_fighter_inaccuracy() {
+    VECTOR inaccuracy = {
+        .x = between(-FIGHTER_INACCURACY, FIGHTER_INACCURACY),
+        .y = 0
+    };
+
+    return inaccuracy;
+}
+
 void update_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
     if (fighter->dead) {
         fighter->position.y += MAX_ENEMY_FIGHTER_SPEED * 2;
@@ -48,6 +59,9 @@ void update_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
                     VECTOR gun_position = add(fighter->position, FIGHTER_GUNS[fighter->gun]);
                     VECTOR motion       = scale(subtract(fighter->target->position, gun_position), 1);
 
+
+                    // a bit of inaccuracy
+                    motion = add(motion, get_fighter_inaccuracy());
                     add_bullet(gun_position, motion, ENEMY_BULLET);
                     fighter->gun = 1 - fighter->gun;
                 }

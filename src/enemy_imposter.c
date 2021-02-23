@@ -20,9 +20,60 @@ float sign(float number) {
     return 0;
 }
 
+bool update_imposter_engines(ENEMY_IMPOSTER_ENGINE* engines[]) {
+    // check for collision, make some smoke...
+
+    bool all_engines_dead = true;
+    for (int d = 0; d < ENGINES_PER_IMPOSTER; d++) {
+        ENEMY_IMPOSTER_ENGINE* engine = engines[d];
+        for (int c = 0; c < MAX_BULLETS; c++) {
+            BULLET* bullet = &(bullets[c]);
+            if (!bullet->used || bullet->alliance != PLAYER_BULLET) continue;
+            if (collision(engine->position, IMPOSTER_ENGINE_SIZE, bullet->position, BULLET_COLLISION_SIZE)) {
+                engine->health--;
+                engine->dead = engine->health <= 0;
+                bullet->used = false;
+            }
+        }
+        if ((int) between(0, ENGINE_MAX_HEALTH) > engine->health) {
+            VECTOR engine_center = add(engine->position, multiply(IMPOSTER_ENGINE_SIZE, 0.5));
+            VECTOR motion        = { .x = 0, .y = 1 };
+            add_smoke(engine_center, motion, engine->health < 5);
+        }
+        all_engines_dead = engine->dead && all_engines_dead;
+    }
+
+    return all_engines_dead;
+}
+
+void set_gunner_targets(ENEMY_IMPOSTER_GUNNER* gunners[], ENGINE* target) {
+    for (int c = 0; c < GUNNERS_PER_IMPOSTER; c++) {
+        gunners[c]->target = target;
+    }
+}
+
+#define IMPOSTER_GUNNER_INACCURACY 0.3 // will need balancing
+
+void get_imposter_gunner_inaccuracy() {
+
+}
+
+void update_imposter_gunners(ENEMY_IMPOSTER_GUNNER* gunners[]) {
+
+}
+
 void update_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
     if (imposter->down) {
         // slowly drift off the screen
+        if (imposter->position.y < BUFFER_HEIGHT && !(frames % 3)) {
+            imposter->position.y++;
+            for (int c = 0; c < ENGINES_PER_IMPOSTER; c++) {
+                imposter->engines[c]->position.y++;
+            }
+            for (int c = 0; c < GUNNERS_PER_IMPOSTER; c++) {
+                imposter->gunners[c]->position.y++;
+            }
+        }
     } else {
         /*
             enemy imposter: comes from the bottom up, aligns itself with the formation
@@ -30,6 +81,7 @@ void update_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
             the imposter moves with the formation
 
             the imposter first targets a bomber that is not down
+            then, it sets its gunners to target the bomber's engine. first the left one, then the right one
         */
         VECTOR target_position = add(formation, FORMATION_OFFSET);
 
@@ -47,5 +99,17 @@ void update_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
                 imposter->gunners[c]->position = add(imposter->gunners[c]->position, motion);
             }
         }
+
+        if (imposter->target == NULL) {
+            imposter->target = select_random_bomber();
+        } else {
+            if (imposter->target->engines[1]->dead) {
+                set_gunner_targets(imposter->gunners, imposter->target->engines[0]);
+            } else {
+                set_gunner_targets(imposter->gunners, imposter->target->engines[1]);
+            }
+        }
     }
+
+    imposter->down = update_imposter_engines(imposter->engines);
 }

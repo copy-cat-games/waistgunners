@@ -39,7 +39,7 @@ obj/%.o: src/%.c
 clean:
 	rm -f obj/*.o
 	rm -f build/*
-	rm -f bin/*
+	rm -f bin/waistgunners.exe
 
 setup:
 	mkdir build

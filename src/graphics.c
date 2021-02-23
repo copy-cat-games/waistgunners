@@ -39,6 +39,8 @@ void init_display() {
 
     must_init(al_init_primitives_addon(), "primitives addon");
 
+    al_set_blender(ALLEGRO_ADD, ALLEGRO_ALPHA, ALLEGRO_INVERSE_ALPHA);
+
     must_init(al_init_font_addon(), "font addon");
     must_init(al_init_ttf_addon(), "ttf addon");
 
@@ -262,6 +264,8 @@ void draw_smoke_particle(SMOKE_DATA* smoke) {
     float alpha          = 1.0 - (float) smoke->lifetime / (float) MAX_SMOKE_LIFETIME;
     ALLEGRO_COLOR colour = smoke->thick ? al_map_rgba_f(0, 0, 0, alpha) : al_map_rgba_f(0.5, 0.5, 0.5, alpha);
     float radius         = (1.0 - alpha) * MAX_SMOKE_RADIUS;
+
+    if (!smoke->thick) alpha = 1.0 - alpha;
 
     al_draw_filled_circle(smoke->position.x, smoke->position.y, radius, colour);
 }
