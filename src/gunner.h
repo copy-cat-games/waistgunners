@@ -17,8 +17,11 @@ typedef struct GUNNER {
 // our testers will see.
 
 #define GUNNER_COOLDOWN  5
-#define GUNNER_RELOAD    100
 
+#define DEFAULT_GUNNER_MAX_SHOTS 7
+#define DEFAULT_GUNNER_RELOAD    80
+
+extern int GUNNER_RELOAD;
 extern int GUNNER_MAX_SHOTS;
 
 GUNNER create_gunner();

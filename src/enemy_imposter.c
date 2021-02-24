@@ -35,7 +35,7 @@ bool update_imposter_engines(ENEMY_IMPOSTER_ENGINE* engines[]) {
                 bullet->used = false;
             }
         }
-        if ((int) between(0, ENGINE_MAX_HEALTH) > engine->health) {
+        if ((int) between(0, IMPOSTER_ENGINE_MAX_HEALTH) > engine->health) {
             VECTOR engine_center = add(engine->position, multiply(IMPOSTER_ENGINE_SIZE, 0.5));
             VECTOR motion        = { .x = 0, .y = 1 };
             add_smoke(engine_center, motion, engine->health < 5);
@@ -52,14 +52,46 @@ void set_gunner_targets(ENEMY_IMPOSTER_GUNNER* gunners[], ENGINE* target) {
     }
 }
 
-#define IMPOSTER_GUNNER_INACCURACY 0.3 // will need balancing
+#define IMPOSTER_GUNNER_INACCURACY 0.1 // will need balancing
 
-void get_imposter_gunner_inaccuracy() {
-
+VECTOR get_imposter_gunner_inaccuracy() {
+    VECTOR inaccuracy = {
+        .x = between(-IMPOSTER_GUNNER_INACCURACY, IMPOSTER_GUNNER_INACCURACY),
+        .y = between(-IMPOSTER_GUNNER_INACCURACY, IMPOSTER_GUNNER_INACCURACY),
+    };
+    return inaccuracy;
 }
 
 void update_imposter_gunners(ENEMY_IMPOSTER_GUNNER* gunners[]) {
+    /*
+        like the player's gunners
+        cooldown and reload count down at the same time
+        when a shot is fired, cooldown and reload are reset
+        if reload reaches zero, then shots is reset
+        if shots reaches zero, the gunner cannot fire
 
+        the gunner can fire only if it has a target, shots > 0, and cooldown >= 0
+    */
+
+    for (int c = 0; c < GUNNERS_PER_IMPOSTER; c++) {
+        ENEMY_IMPOSTER_GUNNER* gunner = gunners[c];
+
+        if (gunner->target != NULL && gunner->shots > 0 && gunner->cooldown <= 0) {
+            VECTOR motion = add(get_imposter_gunner_inaccuracy(), scale(subtract(gunner->target->position, gunner->position), 1));
+            add_bullet(gunner->position, motion, ENEMY_BULLET);
+
+            gunner->cooldown = IMPOSTER_GUNNER_COOLDOWN;
+            gunner->reload   = IMPOSTER_GUNNER_RELOAD;
+            gunner->shots--;
+        } else {
+            if (gunner->cooldown) gunner->cooldown--;
+            if (gunner->reload) {
+                gunner->reload--;
+            } else {
+                gunner->shots = IMPOSTER_GUNNER_MAX_SHOTS;
+            }
+        }
+    }
 }
 
 void update_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
@@ -107,6 +139,10 @@ void update_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
                 set_gunner_targets(imposter->gunners, imposter->target->engines[0]);
             } else {
                 set_gunner_targets(imposter->gunners, imposter->target->engines[1]);
+            }
+            update_imposter_gunners(imposter->gunners);
+            if (imposter->target->down) {
+                imposter->target = NULL;
             }
         }
     }

@@ -64,7 +64,7 @@ void add_enemy_imposter() {
         VECTOR engine_position       = add(imposter_position, IMPOSTER_ENGINES[c]);
         ENEMY_IMPOSTER_ENGINE engine = {
             .position = engine_position,
-            .health   = ENGINE_MAX_HEALTH,
+            .health   = IMPOSTER_ENGINE_MAX_HEALTH,
             .dead     = false,
         };
         imposter_engines[c] = engine;
@@ -74,6 +74,9 @@ void add_enemy_imposter() {
         ENEMY_IMPOSTER_GUNNER gunner = {
             .position = gunner_position,
             .target   = NULL,
+            .cooldown = 0,
+            .reload   = 0,
+            .shots    = IMPOSTER_GUNNER_MAX_SHOTS,
         };
         imposter_gunners[c] = gunner;
     }

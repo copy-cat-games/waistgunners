@@ -54,7 +54,7 @@ void update_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
             float current_x = fighter->position.x + (FIGHTER_SIZE.x / 2);
             float target_x  = fighter->target->position.x + (ENGINE_SIZE.x / 2);
             if (abs(target_x - current_x) <= ENEMY_FIGHTER_THRESHOLD) {
-                if (fighter->cooldown == 0) {
+                if (fighter->cooldown == 0 && fighter->position.y >= BUFFER_HEIGHT / 4) {
                     fighter->cooldown   = ENEMY_FIGHTER_COOLDOWN;
                     VECTOR gun_position = add(fighter->position, FIGHTER_GUNS[fighter->gun]);
                     VECTOR motion       = scale(subtract(fighter->target->position, gun_position), 1);
