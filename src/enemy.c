@@ -12,6 +12,10 @@ VECTOR get_enemy_position(ENEMY* enemy) {
             // access the enemy fighter
             // no need for a break statement
             return enemy->data.fighter.position;
+        case ENEMY_IMPOSTER:
+            return enemy->data.imposter.position;
+        case ENEMY_JET:
+            return enemy->data.jet.position;
         default:
             return v;
     }

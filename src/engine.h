@@ -1,5 +1,6 @@
 #include "vector.h"
 #include "game_state.h"
+#include "sounds.h"
 
 #ifndef _ENGINE
 #define _ENGINE

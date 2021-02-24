@@ -1,4 +1,5 @@
 #include "keyboard.h"
+#include "sounds.h"
 #include "graphics.h"
 #include "mouse.h"
 #include "hud.h"
@@ -20,6 +21,7 @@ int main() {
     initialize_keyboard();
     init_mouse();
     init_sprites();
+    init_sounds();
 
     ALLEGRO_EVENT event;
     reset_bombers();
@@ -72,6 +74,7 @@ int main() {
     }
 
     destroy_sprites();
+    destroy_sounds();
     destroy_display();
     destroy_event_and_queue();
 

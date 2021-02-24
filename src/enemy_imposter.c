@@ -31,6 +31,9 @@ bool update_imposter_engines(ENEMY_IMPOSTER_ENGINE* engines[]) {
             if (!bullet->used || bullet->alliance != PLAYER_BULLET) continue;
             if (collision(engine->position, IMPOSTER_ENGINE_SIZE, bullet->position, BULLET_COLLISION_SIZE)) {
                 engine->health--;
+                if (!engine->dead && engine->health <= 0) {
+                    play_sound(ENGINE_DIE);
+                }
                 engine->dead = engine->health <= 0;
                 bullet->used = false;
             }
@@ -79,6 +82,7 @@ void update_imposter_gunners(ENEMY_IMPOSTER_GUNNER* gunners[]) {
         if (gunner->target != NULL && gunner->shots > 0 && gunner->cooldown <= 0) {
             VECTOR motion = add(get_imposter_gunner_inaccuracy(), scale(subtract(gunner->target->position, gunner->position), 1));
             add_bullet(gunner->position, motion, ENEMY_BULLET);
+            play_sound(ENEMY_IMPOSTER_GUNNER_SHOOT);
 
             gunner->cooldown = IMPOSTER_GUNNER_COOLDOWN;
             gunner->reload   = IMPOSTER_GUNNER_RELOAD;
@@ -147,5 +151,9 @@ void update_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
         }
     }
 
-    imposter->down = update_imposter_engines(imposter->engines);
+    bool all_engines_dead = update_imposter_engines(imposter->engines);
+    if (all_engines_dead && !imposter->down) {
+        play_sound(ENEMY_IMPOSTER_DIE);
+    }
+    imposter->down = all_engines_dead;
 }

@@ -21,6 +21,9 @@ void update_engine(ENGINE* engine) {
         if (!bullet->used || bullet->alliance == PLAYER_BULLET) continue;
         if (collision(engine->position, ENGINE_SIZE, bullet->position, BULLET_COLLISION_SIZE)) {
             engine->health--;
+            if (!engine->dead && engine->health <= 0) {
+                play_sound(ENGINE_DIE);
+            }
             engine->dead = engine->health <= 0;
             bullet->used = false;
         }

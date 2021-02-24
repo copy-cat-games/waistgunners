@@ -1,5 +1,6 @@
 #include "gunner.h"
 
+
 int GUNNER_RELOAD    = DEFAULT_GUNNER_RELOAD;
 int GUNNER_MAX_SHOTS = DEFAULT_GUNNER_MAX_SHOTS;
 
@@ -24,6 +25,7 @@ void update_gunner(GUNNER* gunner) {
         // fire
         VECTOR motion = scale(subtract(get_mouse_position(), gunner->position), 1);
         add_bullet(gunner->position, motion, PLAYER_BULLET);
+        play_sound(GUNNER_SHOOT);
 
         // reset cooldown and reload
         gunner->cooldown = GUNNER_COOLDOWN;

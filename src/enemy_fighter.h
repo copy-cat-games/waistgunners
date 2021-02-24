@@ -1,5 +1,6 @@
 #include "vector.h"
 #include "game_state.h"
+#include "sounds.h"
 #include "bomber.h"
 #include "bullet.h"
 

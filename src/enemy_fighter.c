@@ -63,6 +63,7 @@ void update_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
                     // a bit of inaccuracy
                     motion = add(motion, get_fighter_inaccuracy());
                     add_bullet(gun_position, motion, ENEMY_BULLET);
+                    play_sound(ENEMY_FIGHTER_SHOOT);
                     fighter->gun = 1 - fighter->gun;
                 }
             } else if (target_x > current_x) {
@@ -92,6 +93,7 @@ void update_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
     }
 
     if (!fighter->dead && fighter->health <= 0) {
+        play_sound(ENEMY_FIGHTER_DIE);
         score += ENEMY_FIGHTER_POINTS;
     }
 

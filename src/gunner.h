@@ -2,6 +2,7 @@
 #include "game_state.h"
 #include "mouse.h"
 #include "bullet.h"
+#include "sounds.h"
 
 #ifndef _GUNNER
 #define _GUNNER
