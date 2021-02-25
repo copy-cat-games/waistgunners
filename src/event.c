@@ -8,6 +8,7 @@ void init_event_and_queue() {
     must_init(queue, "event queue");
 
     timer = al_create_timer(1.0 / 50.0);
+    must_init(timer, "timer");
 
     al_register_event_source(queue, al_get_timer_event_source(timer));
 }

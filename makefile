@@ -18,9 +18,10 @@ SOUNDS           = $(SOUND_DEST_DIR)/enemy_fighter_die.flac \
 	$(SOUND_DEST_DIR)/gunner_shoot.flac \
 	$(SOUND_DEST_DIR)/imposter_gunner_shoot.flac \
 	$(SOUND_DEST_DIR)/powerup_pickup.flac
+
 COMPILER = gcc # you can also use clang, if you so desire
 
-RELEASE_ARGS = -pie -O2 src/*.c src/*.h $(LIBS)
+RELEASE_ARGS = -O2 src/*.c src/*.h $(LIBS)
 WINDOWS_ARGS = -B./lib -I./include $(RELEASE_ARGS)
 
 BUILD = bin

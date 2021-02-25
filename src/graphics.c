@@ -301,7 +301,7 @@ void draw_hud() {
             }
         } else {
             // draw a single bullet, and a number to indicate how many
-            char indicator[7];
+            char indicator[17];
             sprintf(indicator, "x%i", gunner->shots);
             al_draw_bitmap(sprites.bullet_clip, 5, 20, 0);
             al_draw_text(small_font, al_map_rgb_f(0.5, 0.5, 0), 10 + CLIP_SIZE.x, 21, 0, indicator);
