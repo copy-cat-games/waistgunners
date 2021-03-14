@@ -7,11 +7,27 @@
 #include "graphics.h"
 
 ALLEGRO_DISPLAY* display;
-ALLEGRO_BITMAP* buffer;
 
+typedef enum BUFFERS {
+    MAIN_BUFFER = 0,
+    NIGHT_BUFFER,
+    BULLET_BUFFER,
+    HUD_BUFFER,
+    BUFFERS_N
+} BUFFERS;
+
+ALLEGRO_BITMAP* draw_buffers[BUFFERS_N];
+
+// ALLEGRO_BITMAP* buffer;
+// ALLEGRO_BITMAP* night_tint;
+// ALLEGRO_BITMAP* hud_layer;
+// ALLEGRO_BITMAP* bullet_layer;
+
+#define TINY_FONT_SIZE  6
 #define SMALL_FONT_SIZE 9
 #define LARGE_FONT_SIZE 24
 
+ALLEGRO_FONT* tiny_font;
 ALLEGRO_FONT* small_font;
 ALLEGRO_FONT* large_font;
 
@@ -34,8 +50,9 @@ void init_display() {
     display = al_create_display(DISPLAY_WIDTH, DISPLAY_HEIGHT);
     must_init(display, "display");
 
-    buffer = al_create_bitmap(BUFFER_WIDTH, BUFFER_HEIGHT);
-    must_init(display, "display");
+    for (int c = 0; c < BUFFERS_N; c++) {
+        draw_buffers[c] = al_create_bitmap(BUFFER_WIDTH, BUFFER_HEIGHT);
+    }
 
     must_init(al_init_primitives_addon(), "primitives addon");
 
@@ -44,6 +61,8 @@ void init_display() {
     must_init(al_init_font_addon(), "font addon");
     must_init(al_init_ttf_addon(), "ttf addon");
 
+    tiny_font  = al_load_ttf_font("PressStart2P-Regular.ttf", TINY_FONT_SIZE, ALLEGRO_TTF_MONOCHROME);
+    must_init(tiny_font, "font");
     small_font = al_load_ttf_font("PressStart2P-Regular.ttf", SMALL_FONT_SIZE, ALLEGRO_TTF_MONOCHROME);
     must_init(small_font, "font");
     large_font = al_load_ttf_font("PressStart2P-Regular.ttf", LARGE_FONT_SIZE, ALLEGRO_TTF_MONOCHROME);
@@ -52,26 +71,35 @@ void init_display() {
     al_register_event_source(queue, al_get_display_event_source(display));
 
     score_colour  = al_map_rgb_f(1, 1, 0.75);
-    debug_colour  = al_map_rgb_f(0.75, 0, 0);
+    debug_colour  = al_map_rgb(232, 234, 246);
     gunner_colour = al_map_rgb_f(1, 0, 0.9);
 }
 
 void destroy_display() {
-    al_destroy_bitmap(buffer);
+    for (int c = 0; c < BUFFERS_N; c++) {
+        al_destroy_bitmap(draw_buffers[c]);
+    }
     al_destroy_display(display);
 }
 
 void display_pre_draw() {
-    al_set_target_bitmap(buffer);
+    for (int c = 0; c < BUFFERS_N; c++) {
+        // clear the buffers
+        al_set_target_bitmap(draw_buffers[c]);
+        al_clear_to_color(al_map_rgba(0, 0, 0, 0));
+    }
+    al_set_target_bitmap(draw_buffers[MAIN_BUFFER]);
     al_clear_to_color(al_map_rgb(143, 188, 143)); // darkseagreen
 }
 
 void display_post_draw(){
     al_set_target_backbuffer(display);
-    al_draw_scaled_bitmap(buffer,
-        0, 0, BUFFER_WIDTH, BUFFER_HEIGHT,
-        0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT,
+    for (int c = 0; c < BUFFERS_N; c++) {
+        al_draw_scaled_bitmap(draw_buffers[c],
+            0, 0, BUFFER_WIDTH, BUFFER_HEIGHT,
+            0, 0, DISPLAY_WIDTH, DISPLAY_HEIGHT,
         0);
+    }
     al_flip_display();
 }
 
@@ -262,7 +290,7 @@ void draw_bullets() {
 
 void draw_smoke_particle(SMOKE_DATA* smoke) {
     float alpha          = 1.0 - (float) smoke->lifetime / (float) MAX_SMOKE_LIFETIME;
-    ALLEGRO_COLOR colour = smoke->thick ? al_map_rgba_f(0, 0, 0, alpha) : al_map_rgba_f(0.5, 0.5, 0.5, alpha);
+    ALLEGRO_COLOR colour = smoke->thick ? al_map_rgba_f(0, 0, 0, alpha) : al_map_rgba_f(0.75, 0.75, 0.75, alpha);
     float radius         = (1.0 - alpha) * MAX_SMOKE_RADIUS;
 
     if (!smoke->thick) alpha = 1.0 - alpha;
@@ -284,6 +312,7 @@ void draw_particles() {
 }
 
 void draw_hud() {
+    al_set_target_bitmap(draw_buffers[HUD_BUFFER]);
     al_draw_bitmap(mouse ? sprites.reticle_firing : sprites.reticle_aiming,
         mouse_x - (RETICLE_SIZE.x + 1) / 2, mouse_y - (RETICLE_SIZE.y + 1) / 2, 0
     );
@@ -301,10 +330,8 @@ void draw_hud() {
             }
         } else {
             // draw a single bullet, and a number to indicate how many
-            char indicator[17];
-            sprintf(indicator, "x%i", gunner->shots);
             al_draw_bitmap(sprites.bullet_clip, 5, 20, 0);
-            al_draw_text(small_font, al_map_rgb_f(0.5, 0.5, 0), 10 + CLIP_SIZE.x, 21, 0, indicator);
+            al_draw_textf(small_font, al_map_rgb_f(0.5, 0.5, 0), 10 + CLIP_SIZE.x, 21, 0, "x%i", gunner->shots);
         }
         if (gunner->reload) {
             float reload_bar_max_width = (float) CLIP_SIZE.x * fmin(GUNNER_MAX_SHOTS, MAX_CLIPS_DRAWN);
@@ -319,18 +346,44 @@ void draw_hud() {
             al_draw_filled_rectangle(start.x, start.y, destination.x, destination.y, al_map_rgb_f(0.5, 0.5, 0));
         }
     }
+    al_set_target_bitmap(draw_buffers[MAIN_BUFFER]);
 }
 
 void draw_debug() {
+    if (!debug) return;
+    al_set_target_bitmap(draw_buffers[HUD_BUFFER]);
 
+    // draw the engines' health and hitboxes
+    for (int c = 0; c < MAX_BOMBERS; c++) {
+        BOMBER* bomber = &bombers[c];
+        if (bomber->position.y > BUFFER_HEIGHT) continue;
+        for (int d = 0; d < ENGINES_PER_BOMBER; d++) {
+            ENGINE* engine     = bomber->engines[d];
+            VECTOR destination = add(engine->position, ENGINE_SIZE);
+            al_draw_rectangle(engine->position.x, engine->position.y, destination.x, destination.y, debug_colour, 2);
+            al_draw_textf(tiny_font, debug_colour, engine->position.x - 3, engine->position.y - (TINY_FONT_SIZE + 1), 0, "%i", engine->health);
+        }
+    }
+
+    al_set_target_bitmap(draw_buffers[MAIN_BUFFER]);
+}
+
+void draw_night_overlay() {
+    ALLEGRO_COLOR night_colour = al_map_rgba(1, 1, 50, 200);
+    al_draw_filled_rectangle(0, 0, BUFFER_WIDTH, BUFFER_HEIGHT, night_colour);
 }
 
 void draw() {
     display_pre_draw();
     draw_enemies();
     draw_bombers();
-    draw_bullets();
+    if (!night) draw_bullets();
     draw_particles();
+    if (night) {
+        draw_night_overlay();
+        draw_bullets();
+    }
     draw_hud();
+    draw_debug();
     display_post_draw();
 }

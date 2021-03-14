@@ -3,6 +3,7 @@
 long frames;
 long score;
 bool debug;
+bool night = false;
 
 void must_init(bool test, char* description) {
     if (test) return;

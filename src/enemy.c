@@ -53,7 +53,7 @@ void add_enemy_fighter() {
     add_enemy(data, ENEMY_FIGHTER);
 }
 
-int imposter_countdown = 5000;
+int imposter_countdown = 50; //1000;
 int enemy_imposters    = 0; // only one imposter can be on the screen at a time
 
 ENEMY_IMPOSTER_ENGINE imposter_engines[ENGINES_PER_IMPOSTER];
@@ -61,6 +61,8 @@ ENEMY_IMPOSTER_GUNNER imposter_gunners[GUNNERS_PER_IMPOSTER];
 
 void add_enemy_imposter() {
     if (enemy_imposters) return;
+
+    enemy_imposters++;
 
     VECTOR imposter_position = { .x = formation.x, .y = BUFFER_HEIGHT };
 
@@ -97,6 +99,12 @@ void add_enemy_imposter() {
     add_enemy(data, ENEMY_IMPOSTER);
 }
 
+void reset_imposter_countdown() {
+    int seconds = (int) between(15, 50);
+    printf("next imposter coming in %i seconds.\n", seconds);
+    imposter_countdown = (int) (seconds * FRAME_RATE);
+}
+
 void update_enemies() {
     // also handles spawning of enemies, as well
     for (int c = 0; c < MAX_ENEMIES; c++) {
@@ -119,11 +127,24 @@ void update_enemies() {
                 ENEMY_IMPOSTER_DATA* imposter = &(e->data.imposter);
                 update_enemy_imposter(imposter);
                 // check for a downed imposter, then set enemy_imposters as 0
+                if (imposter->down && (imposter->position.y > BUFFER_HEIGHT)) {
+                    enemy_imposters = 0;
+                    e->used         = false;
+                    reset_imposter_countdown();
+                }
                 break;
         }
     }
 
     if (frames % 90 == 0 && rand() % 2 == 0) {
         add_enemy_fighter();
+    }
+
+    if (!(enemy_imposters || imposter_countdown)) {
+        add_enemy_imposter();
+    }
+
+    if (!enemy_imposters) {
+        imposter_countdown--;
     }
 }

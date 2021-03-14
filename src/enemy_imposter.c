@@ -33,6 +33,7 @@ bool update_imposter_engines(ENEMY_IMPOSTER_ENGINE* engines[]) {
                 engine->health--;
                 if (!engine->dead && engine->health <= 0) {
                     play_sound(ENGINE_DIE);
+                    score += ENEMY_IMPOSTER_ENGINE_POINTS;
                 }
                 engine->dead = engine->health <= 0;
                 bullet->used = false;
@@ -73,7 +74,7 @@ void update_imposter_gunners(ENEMY_IMPOSTER_GUNNER* gunners[]) {
         if reload reaches zero, then shots is reset
         if shots reaches zero, the gunner cannot fire
 
-        the gunner can fire only if it has a target, shots > 0, and cooldown >= 0
+        the gunner can fire only if it has a target, shots > 0, and cooldown >= 0 and if the imposter is in formation
     */
 
     for (int c = 0; c < GUNNERS_PER_IMPOSTER; c++) {
@@ -101,7 +102,7 @@ void update_imposter_gunners(ENEMY_IMPOSTER_GUNNER* gunners[]) {
 void update_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
     if (imposter->down) {
         // slowly drift off the screen
-        if (imposter->position.y < BUFFER_HEIGHT && !(frames % 3)) {
+        if (!(frames % 3)) {
             imposter->position.y++;
             for (int c = 0; c < ENGINES_PER_IMPOSTER; c++) {
                 imposter->engines[c]->position.y++;
@@ -144,7 +145,9 @@ void update_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
             } else {
                 set_gunner_targets(imposter->gunners, imposter->target->engines[1]);
             }
-            update_imposter_gunners(imposter->gunners);
+            if (imposter->position.y + IMPOSTER_SIZE.y < BUFFER_HEIGHT) {
+                update_imposter_gunners(imposter->gunners);
+            }
             if (imposter->target->down) {
                 imposter->target = NULL;
             }

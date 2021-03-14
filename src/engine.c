@@ -20,7 +20,12 @@ void update_engine(ENGINE* engine) {
         BULLET* bullet = &bullets[c];
         if (!bullet->used || bullet->alliance == PLAYER_BULLET) continue;
         if (collision(engine->position, ENGINE_SIZE, bullet->position, BULLET_COLLISION_SIZE)) {
-            engine->health--;
+            // hidden mechanism to help the player
+            // lets them go on for longer than they would otherwise, give them a fighting chance
+            // not sure how this will turn out
+            if (engine->health > 2 || rand() % 2 == 0) {
+                engine->health--;
+            }
             if (!engine->dead && engine->health <= 0) {
                 play_sound(ENGINE_DIE);
             }

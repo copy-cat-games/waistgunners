@@ -30,10 +30,14 @@ int main() {
     bool redraw  = false;
     bool paused  = false;
 
+    debug = false;
+
+    time_t now          = time(NULL);
+    struct tm* time_now = localtime(&now);
+    night               = (time_now->tm_hour > 21) || (time_now->tm_hour < 6);
+
     frames = 0;
     score  = 0;
-
-    add_enemy_imposter();
 
     al_start_timer(timer);
 
@@ -58,6 +62,9 @@ int main() {
             case ALLEGRO_EVENT_KEY_DOWN:
                 if (event.keyboard.keycode == ALLEGRO_KEY_SPACE) {
                     paused = !paused;
+                }
+                if (event.keyboard.keycode == ALLEGRO_KEY_R) {
+                    debug = !debug;
                 }
         }
         update_keyboard(&event);
