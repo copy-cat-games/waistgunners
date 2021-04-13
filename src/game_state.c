@@ -5,6 +5,8 @@ long score;
 bool debug;
 bool night = false;
 
+int game_state = MAIN_MENU;
+
 void must_init(bool test, char* description) {
     if (test) return;
     printf("can't initialize %s!\n", description);

@@ -151,6 +151,8 @@ void update_bombers() {
         }
         b->down = b->engines[0]->dead && b->engines[1]->dead;
     }
+
+    update_gunner_data();
 }
 
 #define SELECTION_ATTEMPTS 10

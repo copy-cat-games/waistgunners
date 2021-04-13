@@ -9,9 +9,6 @@
 
 typedef struct GUNNER {
     VECTOR position;
-    int cooldown;
-    int shots;
-    int reload;
 } GUNNER;
 
 // the values below probably need some balancing.
@@ -25,7 +22,12 @@ typedef struct GUNNER {
 extern int GUNNER_RELOAD;
 extern int GUNNER_MAX_SHOTS;
 
+extern int gunner_reload;
+extern int gunner_cooldown;
+extern int gunner_shots;
+
 GUNNER create_gunner();
 void update_gunner(GUNNER* gunner);
+void update_gunner_data();
 
 #endif

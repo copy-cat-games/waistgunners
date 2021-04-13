@@ -322,29 +322,26 @@ void draw_hud() {
     // draw the gunners' reloading
     // we first have to select a gunner that's from a bomber that's not down yet
     #define MAX_CLIPS_DRAWN 10
-    GUNNER* gunner = select_gunner();
-    if (gunner != NULL) {
-        if (gunner->shots <= MAX_CLIPS_DRAWN) {
-            for (int c = 0; c < gunner->shots; c++) {
-                al_draw_bitmap(sprites.bullet_clip, c * CLIP_SIZE.x + 5, 20, 0);
-            }
-        } else {
-            // draw a single bullet, and a number to indicate how many
-            al_draw_bitmap(sprites.bullet_clip, 5, 20, 0);
-            al_draw_textf(small_font, al_map_rgb_f(0.5, 0.5, 0), 10 + CLIP_SIZE.x, 21, 0, "x%i", gunner->shots);
+    if (gunner_shots <= MAX_CLIPS_DRAWN) {
+        for (int c = 0; c < gunner_shots; c++) {
+            al_draw_bitmap(sprites.bullet_clip, c * CLIP_SIZE.x + 5, 20, 0);
         }
-        if (gunner->reload) {
-            float reload_bar_max_width = (float) CLIP_SIZE.x * fmin(GUNNER_MAX_SHOTS, MAX_CLIPS_DRAWN);
-            float proportion           = ((float) gunner->reload / (float) GUNNER_RELOAD);
+    } else {
+        // draw a single bullet, and a number to indicate how many
+        al_draw_bitmap(sprites.bullet_clip, 5, 20, 0);
+        al_draw_textf(small_font, al_map_rgb_f(0.5, 0.5, 0), 10 + CLIP_SIZE.x, 21, 0, "x%i", gunner_shots);
+    }
+    if (gunner_reload) {
+        float reload_bar_max_width = (float) CLIP_SIZE.x * fmin(GUNNER_MAX_SHOTS, MAX_CLIPS_DRAWN);
+        float proportion           = ((float) gunner_reload / (float) GUNNER_RELOAD);
 
-            VECTOR start       = { .x = 5, .y = CLIP_SIZE.y + 23 };
-            VECTOR destination = {
-                .x = start.x + proportion * reload_bar_max_width,
-                .y = start.y + 5
-            };
+        VECTOR start       = { .x = 5, .y = CLIP_SIZE.y + 23 };
+        VECTOR destination = {
+            .x = start.x + proportion * reload_bar_max_width,
+            .y = start.y + 5
+        };
 
-            al_draw_filled_rectangle(start.x, start.y, destination.x, destination.y, al_map_rgb_f(0.5, 0.5, 0));
-        }
+        al_draw_filled_rectangle(start.x, start.y, destination.x, destination.y, al_map_rgb_f(0.5, 0.5, 0));
     }
     al_set_target_bitmap(draw_buffers[MAIN_BUFFER]);
 }
