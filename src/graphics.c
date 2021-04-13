@@ -9,7 +9,9 @@
 ALLEGRO_DISPLAY* display;
 
 typedef enum BUFFERS {
-    MAIN_BUFFER = 0,
+    LANDSCAPE_BUFFER = 0,
+    CLOUD_BUFFER,
+    MAIN_BUFFER,
     NIGHT_BUFFER,
     BULLET_BUFFER,
     HUD_BUFFER,
@@ -17,11 +19,6 @@ typedef enum BUFFERS {
 } BUFFERS;
 
 ALLEGRO_BITMAP* draw_buffers[BUFFERS_N];
-
-// ALLEGRO_BITMAP* buffer;
-// ALLEGRO_BITMAP* night_tint;
-// ALLEGRO_BITMAP* hud_layer;
-// ALLEGRO_BITMAP* bullet_layer;
 
 #define TINY_FONT_SIZE  6
 #define SMALL_FONT_SIZE 9
@@ -83,13 +80,14 @@ void destroy_display() {
 }
 
 void display_pre_draw() {
+    al_set_target_backbuffer(display);
+    al_clear_to_color(al_map_rgba(0, 0, 0, 0));
     for (int c = 0; c < BUFFERS_N; c++) {
         // clear the buffers
         al_set_target_bitmap(draw_buffers[c]);
         al_clear_to_color(al_map_rgba(0, 0, 0, 0));
     }
     al_set_target_bitmap(draw_buffers[MAIN_BUFFER]);
-    al_clear_to_color(al_map_rgb(143, 188, 143)); // darkseagreen
 }
 
 void display_post_draw(){
@@ -103,10 +101,12 @@ void display_post_draw(){
     al_flip_display();
 }
 
-const VECTOR JET_SIZE             = { .x = 30, .y = 35 };
+const VECTOR JET_SIZE = { .x = 30, .y = 35 };
 
 const VECTOR RETICLE_SIZE = { .x = 17, .y = 17 };
 const VECTOR CLIP_SIZE    = { .x = 4,  .y = 10 };
+
+const VECTOR LANDSCAPE_SIZE = { .x = 256, .y = 256 };
 
 SPRITES sprites;
 
@@ -154,6 +154,10 @@ void init_sprites() {
     sprites.reticle_aiming = get_sprite(64, 62, RETICLE_SIZE);
     sprites.reticle_firing = get_sprite(81, 62, RETICLE_SIZE);
     sprites.bullet_clip    = get_sprite(98, 69, CLIP_SIZE);
+
+    // once this is finalized, we'll put it in the main spritesheet
+    sprites.landscape = al_load_bitmap("landscape.png");
+    must_init(sprites.landscape, "landscape sprite");
 }
 
 void destroy_sprites() {
@@ -179,7 +183,24 @@ void destroy_sprites() {
     al_destroy_bitmap(sprites.reticle_firing);
     al_destroy_bitmap(sprites.bullet_clip);
 
+    al_destroy_bitmap(sprites.landscape);
+
     al_destroy_bitmap(sprites.spritesheet);
+}
+
+int landscape_scroll = 0;
+
+void draw_landscape() {
+    al_set_target_bitmap(draw_buffers[LANDSCAPE_BUFFER]);
+
+    int offset = landscape_scroll % (int) LANDSCAPE_SIZE.y;
+    for (int c = offset - (int) LANDSCAPE_SIZE.y; c < BUFFER_HEIGHT; c += (int) LANDSCAPE_SIZE.y) {
+        al_draw_bitmap(sprites.landscape, 0, c + 0.5 * (frames % 2), 0);
+    }
+
+    al_set_target_bitmap(draw_buffers[MAIN_BUFFER]);
+    if ((frames % 2) || paused ) return;
+    landscape_scroll++;
 }
 
 void draw_bombers() {
@@ -272,6 +293,7 @@ void draw_enemies() {
 }
 
 void draw_bullets() {
+    al_set_target_bitmap(draw_buffers[BULLET_BUFFER]);
     for (int c = 0; c < MAX_BULLETS; c++) {
         BULLET* b = &bullets[c];
         if (!b->used) continue;
@@ -286,6 +308,7 @@ void draw_bullets() {
         }
         al_draw_bitmap(sprite, b->position.x, b->position.y, 0);
     }
+    al_set_target_bitmap(draw_buffers[MAIN_BUFFER]);
 }
 
 void draw_smoke_particle(SMOKE_DATA* smoke) {
@@ -366,12 +389,15 @@ void draw_debug() {
 }
 
 void draw_night_overlay() {
+    al_set_target_bitmap(draw_buffers[NIGHT_BUFFER]);
     ALLEGRO_COLOR night_colour = al_map_rgba(1, 1, 50, 200);
     al_draw_filled_rectangle(0, 0, BUFFER_WIDTH, BUFFER_HEIGHT, night_colour);
+    al_set_target_bitmap(draw_buffers[MAIN_BUFFER]);
 }
 
 void draw() {
     display_pre_draw();
+    draw_landscape();
     draw_enemies();
     draw_bombers();
     if (!night) draw_bullets();

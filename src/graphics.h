@@ -24,7 +24,6 @@
 #define DISPLAY_HEIGHT (BUFFER_HEIGHT * DISPLAY_SCALE)
 
 extern ALLEGRO_DISPLAY* display;
-// extern ALLEGRO_BITMAP* buffer;
 
 void init_display();
 void destroy_display();
@@ -63,6 +62,9 @@ typedef struct SPRITES {
     ALLEGRO_BITMAP* reticle_aiming;
     ALLEGRO_BITMAP* reticle_firing;
     ALLEGRO_BITMAP* bullet_clip;
+
+    ALLEGRO_BITMAP* landscape;
+    // more landscape sprites might be added in the future, depends on how much time TheAyeStride has
 } SPRITES;
 
 extern SPRITES sprites;

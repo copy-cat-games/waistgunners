@@ -3,7 +3,8 @@
 long frames;
 long score;
 bool debug;
-bool night = false;
+bool paused = false;
+bool night  = false;
 
 int game_state = MAIN_MENU;
 

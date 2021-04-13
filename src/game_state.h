@@ -13,6 +13,7 @@ extern long frames;
 extern long score;
 extern bool debug;
 extern bool night;
+extern bool paused;
 
 typedef enum {
     MAIN_MENU = 0,

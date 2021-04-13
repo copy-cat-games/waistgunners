@@ -28,7 +28,6 @@ int main() {
 
     bool running = true;
     bool redraw  = false;
-    bool paused  = false;
 
     debug = false;
 
