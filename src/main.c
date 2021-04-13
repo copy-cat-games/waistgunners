@@ -50,6 +50,7 @@ int main() {
                     update_bombers();
                     update_enemies();
                     update_particles();
+                    update_clouds();
                     frames++;
                 }
                 update_hud();

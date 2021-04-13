@@ -158,6 +158,12 @@ void init_sprites() {
     // once this is finalized, we'll put it in the main spritesheet
     sprites.landscape = al_load_bitmap("landscape.png");
     must_init(sprites.landscape, "landscape sprite");
+
+    // once these are finalized, we'll put it in the main spritesheet
+    sprites.small_cirrus = al_load_bitmap("cloud_1.png");
+    must_init(sprites.small_cirrus, "small cirrus cloud sprite");
+    sprites.medium_stratoculumus = al_load_bitmap("cloud_2.png");
+    must_init(sprites.medium_stratoculumus, "medium startoculumus sprite");
 }
 
 void destroy_sprites() {
@@ -188,19 +194,40 @@ void destroy_sprites() {
     al_destroy_bitmap(sprites.spritesheet);
 }
 
-int landscape_scroll = 0;
+float landscape_scroll = 0;
 
 void draw_landscape() {
     al_set_target_bitmap(draw_buffers[LANDSCAPE_BUFFER]);
 
-    int offset = landscape_scroll % (int) LANDSCAPE_SIZE.y;
-    for (int c = offset - (int) LANDSCAPE_SIZE.y; c < BUFFER_HEIGHT; c += (int) LANDSCAPE_SIZE.y) {
-        al_draw_bitmap(sprites.landscape, 0, c + 0.5 * (frames % 2), 0);
+    for (float c = landscape_scroll; c < BUFFER_HEIGHT; c += LANDSCAPE_SIZE.y) {
+        al_draw_bitmap(sprites.landscape, 0, c, 0);
     }
 
     al_set_target_bitmap(draw_buffers[MAIN_BUFFER]);
-    if ((frames % 2) || paused ) return;
-    landscape_scroll++;
+    if (paused) return;
+    landscape_scroll += 0.25;
+    if (landscape_scroll >= 0) landscape_scroll -= LANDSCAPE_SIZE.y;
+}
+
+void draw_clouds() {
+    al_set_target_bitmap(draw_buffers[CLOUD_BUFFER]);
+
+    for (int c = 0; c < MAX_CLOUDS; c++) {
+        CLOUD* cloud = &clouds[c];
+        if (!cloud->used) continue;
+        ALLEGRO_BITMAP* sprite;
+        switch (cloud->type) {
+            case SMALL_CIRRUS:
+                sprite = sprites.small_cirrus;
+                break;
+            case MEDIUM_STRATOCULUMUS:
+                sprite = sprites.medium_stratoculumus;
+                break;
+        }
+
+        al_draw_bitmap(sprite, cloud->position.x, cloud->position.y, 0);
+    }
+    al_set_target_bitmap(draw_buffers[MAIN_BUFFER]);
 }
 
 void draw_bombers() {
@@ -220,6 +247,23 @@ void draw_bombers() {
             } else {
                 sprite = sprites.bomber_engine;
             }
+            /* // could also do this
+            switch (e->health) {
+                case 0:
+                    sprite = sprites.bomber_engine_dead;
+                    break;
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                    sprite = sprites.bomber_engine_damaged;
+                    break;
+                default:
+                    sprite = sprites.bomber_engine;
+            } */
             al_draw_bitmap(sprite, e->position.x, e->position.y, 0);
         }
         for (int d = 0; d < GUNNERS_PER_BOMBER; d++) {
@@ -398,6 +442,7 @@ void draw_night_overlay() {
 void draw() {
     display_pre_draw();
     draw_landscape();
+    draw_clouds();
     draw_enemies();
     draw_bombers();
     if (!night) draw_bullets();

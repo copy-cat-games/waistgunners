@@ -7,6 +7,7 @@
 #include <allegro5/allegro_ttf.h>
 #include "game_state.h"
 #include "event.h"
+#include "cloud.h"
 #include "bomber.h"
 #include "engine.h"
 #include "bullet.h"
@@ -65,6 +66,10 @@ typedef struct SPRITES {
 
     ALLEGRO_BITMAP* landscape;
     // more landscape sprites might be added in the future, depends on how much time TheAyeStride has
+
+    ALLEGRO_BITMAP* small_cirrus;
+    ALLEGRO_BITMAP* medium_stratoculumus;
+    // more cloud sprites might be added in the future, depends on who is voluntold for making these
 } SPRITES;
 
 extern SPRITES sprites;
