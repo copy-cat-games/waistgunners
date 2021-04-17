@@ -7,6 +7,7 @@
 #include "graphics.h"
 
 ALLEGRO_DISPLAY* display;
+int landscape_horizontal_scroll = 0;
 
 typedef enum BUFFERS {
     LANDSCAPE_BUFFER = 0,
@@ -106,7 +107,7 @@ const VECTOR JET_SIZE = { .x = 30, .y = 35 };
 const VECTOR RETICLE_SIZE = { .x = 17, .y = 17 };
 const VECTOR CLIP_SIZE    = { .x = 4,  .y = 10 };
 
-const VECTOR LANDSCAPE_SIZE = { .x = 256, .y = 256 };
+const VECTOR LANDSCAPE_SIZE = { .x = 384, .y = 384 };
 
 SPRITES sprites;
 
@@ -155,15 +156,20 @@ void init_sprites() {
     sprites.reticle_firing = get_sprite(81, 62, RETICLE_SIZE);
     sprites.bullet_clip    = get_sprite(98, 69, CLIP_SIZE);
 
-    // once this is finalized, we'll put it in the main spritesheet
-    sprites.landscape = al_load_bitmap("landscape.png");
-    must_init(sprites.landscape, "landscape sprite");
+    // // once this is finalized, we'll put it in the main spritesheet
+    // sprites.icon = al_load_bitmap("icon.png");
+    // must_init(sprites.icon, "icon");
 
-    // once these are finalized, we'll put it in the main spritesheet
-    sprites.small_cirrus = al_load_bitmap("cloud_1.png");
-    must_init(sprites.small_cirrus, "small cirrus cloud sprite");
-    sprites.medium_stratoculumus = al_load_bitmap("cloud_2.png");
-    must_init(sprites.medium_stratoculumus, "medium startoculumus sprite");
+    // // once this is finalized, we'll put it in the main spritesheet
+    // sprites.banner = al_load_bitmap("banner.png");
+    // must_init(sprites.banner, "banner");
+
+    sprites.landscape = get_sprite(0, 79, LANDSCAPE_SIZE);
+
+    VECTOR small_cirrus_size         = { .x = 32, .y = 19 };
+    sprites.small_cirrus             = get_sprite(227, 0, small_cirrus_size);
+    VECTOR medium_stratoculumus_size = { .x = 62, .y = 41 };
+    sprites.medium_stratoculumus     = get_sprite(260, 0, medium_stratoculumus_size);
 }
 
 void destroy_sprites() {
@@ -189,7 +195,14 @@ void destroy_sprites() {
     al_destroy_bitmap(sprites.reticle_firing);
     al_destroy_bitmap(sprites.bullet_clip);
 
+    al_destroy_bitmap(sprites.icon);
+
+    al_destroy_bitmap(sprites.banner);
+
     al_destroy_bitmap(sprites.landscape);
+
+    al_destroy_bitmap(sprites.small_cirrus);
+    al_destroy_bitmap(sprites.medium_stratoculumus);
 
     al_destroy_bitmap(sprites.spritesheet);
 }
@@ -200,7 +213,7 @@ void draw_landscape() {
     al_set_target_bitmap(draw_buffers[LANDSCAPE_BUFFER]);
 
     for (float c = landscape_scroll; c < BUFFER_HEIGHT; c += LANDSCAPE_SIZE.y) {
-        al_draw_bitmap(sprites.landscape, 0, c, 0);
+        al_draw_bitmap(sprites.landscape, -landscape_horizontal_scroll, (int) c, 0);
     }
 
     al_set_target_bitmap(draw_buffers[MAIN_BUFFER]);

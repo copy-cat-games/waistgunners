@@ -102,6 +102,8 @@ void move_bombers(VECTOR motion) {
         }
     }
     formation = add(formation, motion);
+
+    landscape_horizontal_scroll = (int) ((2.0 * formation.x + 100.0) / 3.0);
 }
 
 void update_bombers() {

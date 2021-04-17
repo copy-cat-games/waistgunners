@@ -9,3 +9,4 @@ node_modules
 spritesheet (copy).png
 *.o
 .ccls-cache
+*.xcf

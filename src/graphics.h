@@ -26,6 +26,8 @@
 
 extern ALLEGRO_DISPLAY* display;
 
+extern int landscape_horizontal_scroll;
+
 void init_display();
 void destroy_display();
 
@@ -63,6 +65,10 @@ typedef struct SPRITES {
     ALLEGRO_BITMAP* reticle_aiming;
     ALLEGRO_BITMAP* reticle_firing;
     ALLEGRO_BITMAP* bullet_clip;
+
+    ALLEGRO_BITMAP* icon;
+
+    ALLEGRO_BITMAP* banner;
 
     ALLEGRO_BITMAP* landscape;
     // more landscape sprites might be added in the future, depends on how much time TheAyeStride has

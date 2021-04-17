@@ -32,7 +32,7 @@ If you're doing this on an older computer like me, a madman, then go get some te
 
 ## Credits
 
-- Art (c) Chaidan
+- Art (c) Chaidan and (c) TheAyeStride
 
 - programmming by clocks-in-a-cooler
 
