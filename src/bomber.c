@@ -75,10 +75,17 @@ void reset_bombers() {
 
 void move_bombers(VECTOR motion) {
     if (frames % 2) return;
+
+    // check if all the bombers are down
+    // if they are, the formation shouldn't move
+    // gotta do these checks, dammit
+    bool bomber_not_down = false;
+
     for (int c = 0; c < MAX_BOMBERS; c++) {
         BOMBER* b = &bombers[c];
         if (b->down) continue;
         VECTOR future_position = add(b->position, motion);
+        bomber_not_down        = true;
         if (
             future_position.x < -BOMBER_MARGIN ||
             future_position.y < (BUFFER_WIDTH / 2) ||
@@ -88,6 +95,11 @@ void move_bombers(VECTOR motion) {
             // cancel the movement
             return;
         }
+    }
+
+    if (!bomber_not_down) {
+        game_state = GAME_OVER; // what the fuck? why is this *here*?
+        return;
     }
 
     for (int c = 0; c < MAX_BOMBERS; c++) {

@@ -5,6 +5,7 @@
 */
 
 #include "graphics.h"
+#include "credits.h"
 
 ALLEGRO_DISPLAY* display;
 int landscape_horizontal_scroll = 0;
@@ -32,6 +33,8 @@ ALLEGRO_FONT* large_font;
 ALLEGRO_COLOR score_colour;
 ALLEGRO_COLOR debug_colour;
 ALLEGRO_COLOR gunner_colour;
+
+ALLEGRO_COLOR credits_background_colour;
 
 ALLEGRO_PATH* path;
 
@@ -71,6 +74,8 @@ void init_display() {
     score_colour  = al_map_rgb_f(1, 1, 0.75);
     debug_colour  = al_map_rgb(232, 234, 246);
     gunner_colour = al_map_rgb_f(1, 0, 0.9);
+
+    credits_background_colour = al_map_rgb(46, 139, 87); // x11: "seagreen"
 }
 
 void destroy_display() {
@@ -391,38 +396,101 @@ void draw_particles() {
     }
 }
 
+void draw_button(BUTTON button) {
+    if (!button.text) return;
+
+    ALLEGRO_COLOR button_colour;
+
+    if (is_hovering(button)) {
+        // i'll change the colour later
+        button_colour = BUTTON_HOVER_COLOUR;
+    } else {
+        button_colour = BUTTON_COLOUR;
+    }
+
+    VECTOR button_position = get_button_position(button);
+
+    al_draw_filled_rounded_rectangle(
+        button_position.x, button_position.y,
+        button_position.x + BUTTON_SIZE.x, button_position.y + BUTTON_SIZE.y,
+        BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS, button_colour
+    );
+
+    VECTOR text_position = add(button_position, BUTTON_TEXT_OFFSET);
+
+    al_draw_textf(small_font, BUTTON_TEXT_COLOUR, text_position.x, text_position.y, 0, button.text);
+}
+
 void draw_hud() {
     al_set_target_bitmap(draw_buffers[HUD_BUFFER]);
+
+    if (game_state == CREDITS) {
+        int credits_background_end = 60 + 20 * CREDITS_N;
+        al_draw_filled_rounded_rectangle(10, 50, 190, credits_background_end, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS, credits_background_colour);
+
+        for (int c = 0; c < CREDITS_N; c++) {
+            int y = 55 + c * 20;
+            al_draw_text(small_font, score_colour,
+                c % 2 ? 25 : 15, 55 + c * 20,
+                0, credits[c]
+            );
+        }
+        // al_draw_text(small_font, score_colour, 15, 55, 0, "a game by");
+        // al_draw_text(small_font, score_colour, 15, 75, 0, "the FMM game devs");
+        // al_draw_text(small_font, score_colour, 15, 95, 0, "art by");
+        // al_draw_text(small_font, score_colour, 15, 115, 0, "Chaidan and");
+        // al_draw_text(small_font, score_colour, 15, 135, 0, "TheAyeStride");
+        // al_draw_text(small_font, score_colour, 15, 155, 0, "coding by");
+        // al_draw_text(small_font, score_colour, 15, 175, 0, "Clocks-in-a-Cooler");
+    }
+
+    for (int c = 0; c < MAX_BUTTONS; c++) {
+        draw_button(menu_buttons[c]);
+    }
+
     al_draw_bitmap(mouse ? sprites.reticle_firing : sprites.reticle_aiming,
         mouse_x - (RETICLE_SIZE.x + 1) / 2, mouse_y - (RETICLE_SIZE.y + 1) / 2, 0
     );
 
-    al_draw_textf(small_font, al_map_rgb_f(1, 1, 0.5), 5, 5, 0, "%06ld", get_display_score());
-
     // draw the gunners' reloading
     // we first have to select a gunner that's from a bomber that's not down yet
     #define MAX_CLIPS_DRAWN 10
-    if (gunner_shots <= MAX_CLIPS_DRAWN) {
-        for (int c = 0; c < gunner_shots; c++) {
-            al_draw_bitmap(sprites.bullet_clip, c * CLIP_SIZE.x + 5, 20, 0);
+    if (game_state == PLAYING) {
+        // so that the score counter and reloading bar are easier to see
+        al_draw_filled_rounded_rectangle(0, 0, 63, 40, 3, 3, al_map_rgba_f(0, 0, 0, 0.8));
+
+        al_draw_textf(small_font, score_colour, 5, 5, 0, "%06ld", get_display_score());
+
+        if (gunner_shots <= MAX_CLIPS_DRAWN) {
+            for (int c = 0; c < gunner_shots; c++) {
+                al_draw_bitmap(sprites.bullet_clip, c * CLIP_SIZE.x + 5, 20, 0);
+            }
+        } else {
+            // draw a single bullet, and a number to indicate how many
+            al_draw_bitmap(sprites.bullet_clip, 5, 20, 0);
+            al_draw_textf(small_font, al_map_rgb_f(0.5, 0.5, 0), 10 + CLIP_SIZE.x, 21, 0, "x%i", gunner_shots);
         }
-    } else {
-        // draw a single bullet, and a number to indicate how many
-        al_draw_bitmap(sprites.bullet_clip, 5, 20, 0);
-        al_draw_textf(small_font, al_map_rgb_f(0.5, 0.5, 0), 10 + CLIP_SIZE.x, 21, 0, "x%i", gunner_shots);
-    }
-    if (gunner_reload) {
-        float reload_bar_max_width = (float) CLIP_SIZE.x * fmin(GUNNER_MAX_SHOTS, MAX_CLIPS_DRAWN);
-        float proportion           = ((float) gunner_reload / (float) GUNNER_RELOAD);
+        if (gunner_reload) {
+            float reload_bar_max_width = (float) CLIP_SIZE.x * fmin(GUNNER_MAX_SHOTS, MAX_CLIPS_DRAWN);
+            float proportion           = ((float) gunner_reload / (float) GUNNER_RELOAD);
 
-        VECTOR start       = { .x = 5, .y = CLIP_SIZE.y + 23 };
-        VECTOR destination = {
-            .x = start.x + proportion * reload_bar_max_width,
-            .y = start.y + 5
-        };
+            VECTOR start       = { .x = 5, .y = CLIP_SIZE.y + 23 };
+            VECTOR destination = {
+                .x = start.x + proportion * reload_bar_max_width,
+                .y = start.y + 5
+            };
 
-        al_draw_filled_rectangle(start.x, start.y, destination.x, destination.y, al_map_rgb_f(0.5, 0.5, 0));
+            al_draw_filled_rectangle(start.x, start.y, destination.x, destination.y, al_map_rgb_f(0.5, 0.5, 0));
+        }
+
+        if (paused && game_state == PLAYING) {
+            // draw a small box that tells the player that the game is paused
+            // it's obvious, but you never know!
+            al_draw_filled_rounded_rectangle(70, 100, 130, 120, 3, 3, al_map_rgba_f(0, 0, 0, 0.8));
+            al_draw_text(small_font, score_colour, 73, 105, 0, "paused");
+        }
     }
+
     al_set_target_bitmap(draw_buffers[MAIN_BUFFER]);
 }
 

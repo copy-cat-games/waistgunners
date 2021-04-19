@@ -136,6 +136,11 @@ void update_enemies() {
         }
     }
 
+    if (game_state != PLAYING) return;
+
+    // for generating enemies
+    // add more as needed
+
     if (frames % 90 == 0 && rand() % 2 == 0) {
         add_enemy_fighter();
     }

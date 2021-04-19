@@ -7,6 +7,7 @@
 #include <allegro5/allegro_ttf.h>
 #include "game_state.h"
 #include "event.h"
+#include "button.h"
 #include "cloud.h"
 #include "bomber.h"
 #include "engine.h"
