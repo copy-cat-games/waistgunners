@@ -29,4 +29,14 @@ void must_init(bool test, char* description);
 void init_game();
 float between(float lower, float higher);
 
+// menu button functions, defined in main.c
+
+void start_game();
+void game_over();
+void restart_game();
+
+void main_menu();
+void show_credits();
+void quit();
+
 #endif

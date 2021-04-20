@@ -53,7 +53,7 @@ void add_enemy_fighter() {
     add_enemy(data, ENEMY_FIGHTER);
 }
 
-int imposter_countdown = 100 * FRAME_RATE; //1000;
+int imposter_countdown = DEFAULT_IMPOSTER_SPAWN_DELAY; //1000;
 int enemy_imposters    = 0; // only one imposter can be on the screen at a time
 
 ENEMY_IMPOSTER_ENGINE imposter_engines[ENGINES_PER_IMPOSTER];

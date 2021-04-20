@@ -10,6 +10,7 @@
 #include <stdlib.h>
 
 // these functions will be used by the buttons
+// they are declared in game_state.h
 
 void start_game() {
     if (game_state == MAIN_MENU) game_state = PLAYING;
@@ -17,12 +18,34 @@ void start_game() {
     reset_buttons();
 }
 
-void restart_game() {
-    // reset the whole game
+void game_over() {
+    game_state = GAME_OVER;
+    // we need a button for restarting the game
+    menu_buttons[0] = create_button("menu", 205, restart_game);
 }
 
-void show_credits();
-void quit();
+void restart_game() {
+    // reset the whole game
+
+    frames = 0;
+    score  = 0;
+
+    // clear the enemies, reset the imposter countdown
+    // any future enemies with special variables should also reset. i know i'll forget something, dammit
+    imposter_countdown = DEFAULT_IMPOSTER_SPAWN_DELAY;
+    enemy_imposters    = 0;
+
+    // clear out the enemies
+    for (int c = 0; c < MAX_ENEMIES; c++) {
+        enemies[c].used = false;
+    }
+
+    // reset the bombers
+    reset_bombers();
+
+    reset_buttons();
+    main_menu();
+}
 
 void main_menu() {
     switch (game_state) {
@@ -92,7 +115,9 @@ int main() {
                 if (!paused) {
                     update_buttons();
                     update_bullets();
-                    update_bombers();
+                    if (update_bombers()) {
+                        game_over();
+                    }
                     update_enemies();
                     update_particles();
                     update_clouds();

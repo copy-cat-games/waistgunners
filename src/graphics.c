@@ -435,15 +435,23 @@ void draw_hud() {
                 0, credits[c]
             );
         }
-        // al_draw_text(small_font, score_colour, 15, 55, 0, "a game by");
-        // al_draw_text(small_font, score_colour, 15, 75, 0, "the FMM game devs");
-        // al_draw_text(small_font, score_colour, 15, 95, 0, "art by");
-        // al_draw_text(small_font, score_colour, 15, 115, 0, "Chaidan and");
-        // al_draw_text(small_font, score_colour, 15, 135, 0, "TheAyeStride");
-        // al_draw_text(small_font, score_colour, 15, 155, 0, "coding by");
-        // al_draw_text(small_font, score_colour, 15, 175, 0, "Clocks-in-a-Cooler");
     }
 
+    if (game_state == GAME_OVER) {
+        al_draw_filled_rounded_rectangle(50, 50, 150, 200, 3, 3, credits_background_colour);
+        if (frames % 100 > 50) {
+            al_draw_text(large_font, score_colour, 52, 55, 0, "GAME");
+            al_draw_text(large_font, score_colour, 52, 100, 0, "OVER");
+        }
+
+        al_draw_textf(small_font, score_colour, 70, 150, 0, "%06ld", score);
+    }
+
+    // if you're wondering where the code to draw the main menu is,
+    // there isn't any. yet. i still need a banner for the game
+
+    // draws buttons
+    // no matter what the game state is
     for (int c = 0; c < MAX_BUTTONS; c++) {
         draw_button(menu_buttons[c]);
     }

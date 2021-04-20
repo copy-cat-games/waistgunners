@@ -98,7 +98,7 @@ void move_bombers(VECTOR motion) {
     }
 
     if (!bomber_not_down) {
-        game_state = GAME_OVER; // what the fuck? why is this *here*?
+        // don't bother moving, bombers are all down anyway
         return;
     }
 
@@ -118,7 +118,7 @@ void move_bombers(VECTOR motion) {
     landscape_horizontal_scroll = (int) ((2.0 * formation.x + 100.0) / 3.0);
 }
 
-void update_bombers() {
+bool update_bombers() {
     VECTOR motion = { .x = 0, .y = 0 };
     if (key_is_pressed(ALLEGRO_KEY_LEFT) || key_is_pressed(ALLEGRO_KEY_A)) {
         motion.x += -BOMBER_SPEED;
@@ -138,8 +138,12 @@ void update_bombers() {
     move_bombers(motion);
 
     // check for downed bombers and dead engines
+    bool all_bombers_down = true;
+
     for (int c = 0; c < MAX_BOMBERS; c++) {
         BOMBER* b = &bombers[c];
+        
+        all_bombers_down = b->down && all_bombers_down;
         if (b->down) {
             float motion   = b->position.y > BUFFER_HEIGHT ? 0 : frames % 2;
             b->position.y += motion;
@@ -167,6 +171,8 @@ void update_bombers() {
     }
 
     update_gunner_data();
+
+    return all_bombers_down;
 }
 
 #define SELECTION_ATTEMPTS 10

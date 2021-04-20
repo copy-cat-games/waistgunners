@@ -24,7 +24,8 @@ extern VECTOR formation;
 extern VECTOR BOMBER_SIZE;
 extern BOMBER bombers[MAX_BOMBERS + 1];
 
-void update_bombers();
+// if this function returns true, then all of the bombers have been shot down and we should end the game
+bool update_bombers();
 void reset_bombers();
 
 BOMBER* select_random_bomber();

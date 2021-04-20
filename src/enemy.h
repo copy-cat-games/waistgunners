@@ -38,6 +38,15 @@ void add_enemy_fighter();
 void add_enemy_imposter();
 void add_enemy_jet();
 
+// variables/constants needed for enemy spawning should go here, as spawning is handled by enemy.c
+
+// enemy fighter has no spawning data
+
+// enemy imposter spawning stuff
+#define DEFAULT_IMPOSTER_SPAWN_DELAY FRAME_RATE * 100
+extern int imposter_countdown;
+extern int enemy_imposters;
+
 // point values for each enemy type are defined in their respective header files
 // they'll need balancing
 
