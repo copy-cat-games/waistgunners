@@ -35,6 +35,7 @@ ALLEGRO_COLOR debug_colour;
 ALLEGRO_COLOR gunner_colour;
 
 ALLEGRO_COLOR credits_background_colour;
+ALLEGRO_COLOR ui_background_colour;
 
 ALLEGRO_PATH* path;
 
@@ -76,6 +77,7 @@ void init_display() {
     gunner_colour = al_map_rgb_f(1, 0, 0.9);
 
     credits_background_colour = al_map_rgb(46, 139, 87); // x11: "seagreen"
+    ui_background_colour      = al_map_rgba_f(0, 0, 0, 0.8);
 }
 
 void destroy_display() {
@@ -465,7 +467,7 @@ void draw_hud() {
     #define MAX_CLIPS_DRAWN 10
     if (game_state == PLAYING) {
         // so that the score counter and reloading bar are easier to see
-        al_draw_filled_rounded_rectangle(0, 0, 63, 40, 3, 3, al_map_rgba_f(0, 0, 0, 0.8));
+        al_draw_filled_rounded_rectangle(0, 0, 63, 40, 3, 3, ui_background_colour);
 
         al_draw_textf(small_font, score_colour, 5, 5, 0, "%06ld", get_display_score());
 
@@ -494,12 +496,35 @@ void draw_hud() {
         if (paused && game_state == PLAYING) {
             // draw a small box that tells the player that the game is paused
             // it's obvious, but you never know!
-            al_draw_filled_rounded_rectangle(70, 100, 130, 120, 3, 3, al_map_rgba_f(0, 0, 0, 0.8));
+            al_draw_filled_rounded_rectangle(70, 100, 130, 120, 3, 3, ui_background_colour);
             al_draw_text(small_font, score_colour, 73, 105, 0, "paused");
         }
     }
 
     al_set_target_bitmap(draw_buffers[MAIN_BUFFER]);
+}
+
+// various enemy debug drawing functions
+// draw_debug() itself is at the very bottom
+
+void draw_enemy_fighter_debug(ENEMY_FIGHTER_DATA fighter_data) {
+    // draw the enemy fighter's hitbox
+    VECTOR start = add(fighter_data.position, FIGHTER_COLLISION_POSITION);
+    VECTOR end   = add(start, FIGHTER_COLLISION_SIZE);
+    al_draw_rectangle(start.x, start.y, end.x, end.y, debug_colour, 2);
+
+    al_draw_textf(tiny_font, debug_colour, start.x - 3, start.y - (TINY_FONT_SIZE + 1), 0, "%i", fighter_data.health);
+}
+
+void draw_enemy_imposter_debug(ENEMY_IMPOSTER_DATA imposter_data) {
+    // draw the imposter's engines' health and hitboxes
+    for (int c = 0; c < ENGINES_PER_IMPOSTER; c++) {
+        ENEMY_IMPOSTER_ENGINE* engine = imposter_data.engines[c];
+        VECTOR start = engine->position;
+        VECTOR end   = add(engine->position, IMPOSTER_ENGINE_SIZE);
+        al_draw_rectangle(start.x, start.y, end.x, end.y, debug_colour, 2);
+        al_draw_textf(tiny_font, debug_colour, start.x - 3, start.y - (TINY_FONT_SIZE + 1), 0, "%i", engine->health);
+    }
 }
 
 void draw_debug() {
@@ -515,6 +540,29 @@ void draw_debug() {
             VECTOR destination = add(engine->position, ENGINE_SIZE);
             al_draw_rectangle(engine->position.x, engine->position.y, destination.x, destination.y, debug_colour, 2);
             al_draw_textf(tiny_font, debug_colour, engine->position.x - 3, engine->position.y - (TINY_FONT_SIZE + 1), 0, "%i", engine->health);
+        }
+    }
+
+    // draw a box in the top right corner
+    // this will hold the countdown to imposter spawn, as well as other things
+    al_draw_filled_rectangle(BUFFER_WIDTH - 100, 0, BUFFER_WIDTH, 60, ui_background_colour);
+    al_draw_textf(tiny_font, debug_colour, BUFFER_WIDTH - 93, 3, 0, "%i", imposter_countdown);
+
+    // draw enemy data, whatever it might be
+    for (int c = 0; c < MAX_ENEMIES; c++) {
+        ENEMY* enemy = &enemies[c];
+        if (!enemy->used) continue;
+        switch (enemy->type) {
+            case ENEMY_FIGHTER:
+                ;
+                ENEMY_FIGHTER_DATA fighter_data = enemy->data.fighter;
+                draw_enemy_fighter_debug(fighter_data);
+                break;
+            case ENEMY_IMPOSTER:
+                ;
+                ENEMY_IMPOSTER_DATA imposter_data = enemy->data.imposter;
+                draw_enemy_imposter_debug(imposter_data);
+                break;
         }
     }
 
