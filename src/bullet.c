@@ -41,7 +41,7 @@ void update_bullets() {
     for (int c = 0; c < MAX_BULLETS; c++) {
         BULLET* b = &(bullets[c]);
         if (!b->used) continue;
-        b->position = add(b->position, multiply(b->motion, BULLET_SPEED));
+        b->position = add(b->position, multiply(b->motion, BULLET_SPEED * pow(2, power_up_activated(FASTER_BULLETS))));
         if (
             b->position.x < 0 || b->position.y < 0 ||
             b->position.x > BUFFER_WIDTH || b->position.y > BUFFER_HEIGHT

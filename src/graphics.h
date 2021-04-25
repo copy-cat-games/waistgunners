@@ -8,6 +8,7 @@
 #include "game_state.h"
 #include "event.h"
 #include "button.h"
+#include "power_up.h"
 #include "cloud.h"
 #include "bomber.h"
 #include "engine.h"
@@ -77,6 +78,11 @@ typedef struct SPRITES {
     ALLEGRO_BITMAP* small_cirrus;
     ALLEGRO_BITMAP* medium_stratoculumus;
     // more cloud sprites might be added in the future, depends on who is voluntold for making these
+
+    ALLEGRO_BITMAP* power_up_bigger_clip_size;
+    ALLEGRO_BITMAP* power_up_faster_reload;
+    ALLEGRO_BITMAP* power_up_faster_bullets;
+    // more powerups might be added, depends on which poor chap ~~is forced~~ volunteers to make more sprites for them
 } SPRITES;
 
 extern SPRITES sprites;

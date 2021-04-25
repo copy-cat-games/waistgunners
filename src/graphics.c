@@ -163,20 +163,16 @@ void init_sprites() {
     sprites.reticle_firing = get_sprite(81, 62, RETICLE_SIZE);
     sprites.bullet_clip    = get_sprite(98, 69, CLIP_SIZE);
 
-    // // once this is finalized, we'll put it in the main spritesheet
-    // sprites.icon = al_load_bitmap("icon.png");
-    // must_init(sprites.icon, "icon");
-
-    // // once this is finalized, we'll put it in the main spritesheet
-    // sprites.banner = al_load_bitmap("banner.png");
-    // must_init(sprites.banner, "banner");
-
     sprites.landscape = get_sprite(0, 79, LANDSCAPE_SIZE);
 
     VECTOR small_cirrus_size         = { .x = 32, .y = 19 };
     sprites.small_cirrus             = get_sprite(227, 0, small_cirrus_size);
     VECTOR medium_stratoculumus_size = { .x = 62, .y = 41 };
     sprites.medium_stratoculumus     = get_sprite(260, 0, medium_stratoculumus_size);
+
+    sprites.power_up_bigger_clip_size = get_sprite(102, 62, POWER_UP_SIZE);
+    sprites.power_up_faster_reload    = get_sprite(136, 62, POWER_UP_SIZE);
+    sprites.power_up_faster_bullets   = get_sprite(119, 62, POWER_UP_SIZE);
 }
 
 void destroy_sprites() {
@@ -210,6 +206,10 @@ void destroy_sprites() {
 
     al_destroy_bitmap(sprites.small_cirrus);
     al_destroy_bitmap(sprites.medium_stratoculumus);
+
+    al_destroy_bitmap(sprites.power_up_bigger_clip_size);
+    al_destroy_bitmap(sprites.power_up_faster_reload);
+    al_destroy_bitmap(sprites.power_up_faster_bullets);
 
     al_destroy_bitmap(sprites.spritesheet);
 }
@@ -356,6 +356,10 @@ void draw_enemies() {
     }
 }
 
+void draw_floating_power_ups() {
+    // not sure if this is needed
+}
+
 void draw_bullets() {
     al_set_target_bitmap(draw_buffers[BULLET_BUFFER]);
     for (int c = 0; c < MAX_BULLETS; c++) {
@@ -491,6 +495,38 @@ void draw_hud() {
             };
 
             al_draw_filled_rectangle(start.x, start.y, destination.x, destination.y, al_map_rgb_f(0.5, 0.5, 0));
+        }
+
+        // a box to contain the powerup elements
+        al_draw_filled_rounded_rectangle(0, 41, 63, 93, 3, 3, ui_background_colour);
+        for (int c = 0; c < MAX_STORED_POWER_UPS; c++) {
+            POWER_UP p = stored_power_ups[c];
+            if (!p.lifetime || p.type == NONE) continue;
+            int draw_y = 42 + c * (POWER_UP_SIZE.y + 1);
+            ALLEGRO_BITMAP* sprite;
+            switch (p.type) {
+                case BIGGER_CLIP_SIZE:
+                    sprite = sprites.power_up_bigger_clip_size;
+                    break;
+                case FASTER_RELOAD:
+                    sprite = sprites.power_up_faster_reload;
+                    break;
+                case FASTER_BULLETS:
+                    sprite = sprites.power_up_faster_bullets;
+                    break;
+                // more powerups to be added...
+            }
+            al_draw_bitmap(sprite, 1, draw_y, 0);
+            
+            // also draw a bar showing how much time is left
+            float proportion = (float) p.lifetime / ((float) MAX_POWER_UP_LIFETIMES[p.type]);
+
+            VECTOR start = { .x = 18, .y = draw_y };
+            VECTOR end   = { .x = 18 + proportion * 44, .y = draw_y + 16 };
+            al_draw_filled_rectangle(start.x, start.y, end.x, end.y, score_colour);
+            
+            // for debugging
+            // al_draw_textf(small_font, score_colour, 18, draw_y + SMALL_FONT_SIZE / 2, 0, "%i", p.lifetime);
         }
 
         if (paused && game_state == PLAYING) {

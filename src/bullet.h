@@ -1,4 +1,5 @@
 #include "vector.h"
+#include "power_up.h"
 
 #ifndef _BULLET
 #define _BULLET

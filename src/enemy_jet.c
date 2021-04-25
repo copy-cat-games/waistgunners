@@ -4,3 +4,7 @@
 void update_enemy_jet(ENEMY_JET_DATA* jet) {
 
 }
+
+void create_enemy_jet() {
+    
+}

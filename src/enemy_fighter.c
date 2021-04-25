@@ -11,7 +11,7 @@ const VECTOR FIGHTER_GUNS[2] = {
 VECTOR FIGHTER_COLLISION_POSITION = { .x = 11, .y = 0 };
 VECTOR FIGHTER_COLLISION_SIZE     = { .x = 10, .y = 31 };
 
-#define FIGHTER_INACCURACY 0.4 // will need balancing
+#define FIGHTER_INACCURACY 0.2 // will need balancing
 
 VECTOR get_fighter_inaccuracy() {
     VECTOR inaccuracy = {
@@ -95,6 +95,7 @@ void update_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
     if (!fighter->dead && fighter->health <= 0) {
         play_sound(ENEMY_FIGHTER_DIE);
         score += ENEMY_FIGHTER_POINTS;
+        if (rand() % 4 == 0) add_power_up(-1);
     }
 
     fighter->dead = fighter->health <= 0;

@@ -1,6 +1,7 @@
 #include "game_state.h"
 #include "vector.h"
 #include "bomber.h"
+#include "power_up.h"
 
 #ifndef _ENEMY_IMPOSTER
 #define _ENEMY_IMPOSTER

@@ -17,6 +17,8 @@ GUNNER create_gunner() {
 }
 
 void update_gunner_data() {
+    GUNNER_RELOAD = DEFAULT_GUNNER_RELOAD / pow(2, power_up_activated(FASTER_RELOAD));
+    gunner_reload = (int) fmin(gunner_reload, GUNNER_RELOAD);
     if (fired) {
         gunner_cooldown = GUNNER_COOLDOWN;
         gunner_reload   = GUNNER_RELOAD;
@@ -27,7 +29,7 @@ void update_gunner_data() {
         if (gunner_reload) {
             gunner_reload--;
         } else {
-            gunner_shots = GUNNER_MAX_SHOTS;
+            gunner_shots = GUNNER_MAX_SHOTS * pow(2, power_up_activated(BIGGER_CLIP_SIZE));
         }
     }
 

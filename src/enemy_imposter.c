@@ -157,6 +157,7 @@ void update_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
     bool all_engines_dead = update_imposter_engines(imposter->engines);
     if (all_engines_dead && !imposter->down) {
         play_sound(ENEMY_IMPOSTER_DIE);
+        add_power_up(-1);
     }
     imposter->down = all_engines_dead;
 }

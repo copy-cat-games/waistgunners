@@ -73,6 +73,26 @@ void quit() {
     running = false;
 }
 
+void handle_key_down(int keycode) {
+    switch (keycode) {
+        case ALLEGRO_KEY_SPACE:
+            paused = !paused && (game_state == PLAYING);
+            break;
+        case ALLEGRO_KEY_R:
+            debug = !debug;
+            break;
+        case ALLEGRO_KEY_Z:
+            activate_power_up(0);
+            break;
+        case ALLEGRO_KEY_X:
+            activate_power_up(1);
+            break;
+        case ALLEGRO_KEY_C:
+            activate_power_up(2);
+            break;
+    }
+}
+
 int main() {
     // seed the rng
     time_t t;
@@ -118,6 +138,7 @@ int main() {
                     if (update_bombers()) {
                         game_over();
                     }
+                    update_power_ups();
                     update_enemies();
                     update_particles();
                     update_clouds();
@@ -130,12 +151,8 @@ int main() {
                 running = false;
                 break;
             case ALLEGRO_EVENT_KEY_DOWN:
-                if (event.keyboard.keycode == ALLEGRO_KEY_SPACE) {
-                    paused = !paused && (game_state == PLAYING);
-                }
-                if (event.keyboard.keycode == ALLEGRO_KEY_R) {
-                    debug = !debug;
-                }
+                handle_key_down(event.keyboard.keycode);
+                break;
         }
         update_keyboard(&event);
         update_mouse();

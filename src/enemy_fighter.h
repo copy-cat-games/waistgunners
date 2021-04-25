@@ -3,6 +3,7 @@
 #include "sounds.h"
 #include "bomber.h"
 #include "bullet.h"
+#include "power_up.h"
 
 #ifndef _ENEMY_FIGHTER
 #define _ENEMY_FIGHTER
