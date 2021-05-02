@@ -36,6 +36,7 @@ ALLEGRO_COLOR gunner_colour;
 
 ALLEGRO_COLOR credits_background_colour;
 ALLEGRO_COLOR ui_background_colour;
+ALLEGRO_COLOR power_up_bar_colour;
 
 ALLEGRO_PATH* path;
 
@@ -78,6 +79,7 @@ void init_display() {
 
     credits_background_colour = al_map_rgb(46, 139, 87); // x11: "seagreen"
     ui_background_colour      = al_map_rgba_f(0, 0, 0, 0.8);
+    power_up_bar_colour       = al_map_rgb(190, 190, 190); //al_map_rgb(190, 190, 190); // matches the background colour of the powerup
 }
 
 void destroy_display() {
@@ -173,6 +175,10 @@ void init_sprites() {
     sprites.power_up_bigger_clip_size = get_sprite(102, 62, POWER_UP_SIZE);
     sprites.power_up_faster_reload    = get_sprite(136, 62, POWER_UP_SIZE);
     sprites.power_up_faster_bullets   = get_sprite(119, 62, POWER_UP_SIZE);
+    sprites.power_up_destroy_enemies  = get_sprite(153, 62, POWER_UP_SIZE);
+    sprites.power_up_repair_engine    = get_sprite(170, 62, POWER_UP_SIZE);
+    sprites.power_up_missing          = get_sprite(187, 62, POWER_UP_SIZE);
+    sprites.power_up_invincibility    = get_sprite(204, 62, POWER_UP_SIZE);
 }
 
 void destroy_sprites() {
@@ -210,6 +216,10 @@ void destroy_sprites() {
     al_destroy_bitmap(sprites.power_up_bigger_clip_size);
     al_destroy_bitmap(sprites.power_up_faster_reload);
     al_destroy_bitmap(sprites.power_up_faster_bullets);
+    al_destroy_bitmap(sprites.power_up_destroy_enemies);
+    al_destroy_bitmap(sprites.power_up_repair_engine);
+    al_destroy_bitmap(sprites.power_up_missing);
+    al_destroy_bitmap(sprites.power_up_invincibility);
 
     al_destroy_bitmap(sprites.spritesheet);
 }
@@ -435,7 +445,7 @@ void draw_hud() {
         al_draw_filled_rounded_rectangle(10, 50, 190, credits_background_end, BUTTON_CORNER_RADIUS, BUTTON_CORNER_RADIUS, credits_background_colour);
 
         for (int c = 0; c < CREDITS_N; c++) {
-            int y = 55 + c * 20;
+            int y = 55 + c * (int) floor(SMALL_FONT_SIZE * 1.5);
             al_draw_text(small_font, score_colour,
                 c % 2 ? 25 : 15, 55 + c * 20,
                 0, credits[c]
@@ -514,6 +524,17 @@ void draw_hud() {
                 case FASTER_BULLETS:
                     sprite = sprites.power_up_faster_bullets;
                     break;
+                case DESTROY_ENEMIES:
+                    sprite = sprites.power_up_destroy_enemies;
+                    break;
+                case REPAIR_ENGINE:
+                    sprite = sprites.power_up_repair_engine;
+                    break;
+                case TEMPORARY_INVINCIBILITY:
+                    sprite = sprites.power_up_invincibility;
+                    break;
+                default:
+                    sprite = sprites.power_up_missing;
                 // more powerups to be added...
             }
             al_draw_bitmap(sprite, 1, draw_y, 0);
@@ -521,12 +542,9 @@ void draw_hud() {
             // also draw a bar showing how much time is left
             float proportion = (float) p.lifetime / ((float) MAX_POWER_UP_LIFETIMES[p.type]);
 
-            VECTOR start = { .x = 18, .y = draw_y };
-            VECTOR end   = { .x = 18 + proportion * 44, .y = draw_y + 16 };
-            al_draw_filled_rectangle(start.x, start.y, end.x, end.y, score_colour);
-            
-            // for debugging
-            // al_draw_textf(small_font, score_colour, 18, draw_y + SMALL_FONT_SIZE / 2, 0, "%i", p.lifetime);
+            VECTOR start = { .x = 18, .y = draw_y + 5 };
+            VECTOR end   = { .x = 18 + proportion * 44, .y = draw_y + 11 };
+            al_draw_filled_rectangle(start.x, start.y, end.x, end.y, power_up_bar_colour);
         }
 
         if (paused && game_state == PLAYING) {

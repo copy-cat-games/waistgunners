@@ -82,6 +82,10 @@ typedef struct SPRITES {
     ALLEGRO_BITMAP* power_up_bigger_clip_size;
     ALLEGRO_BITMAP* power_up_faster_reload;
     ALLEGRO_BITMAP* power_up_faster_bullets;
+    ALLEGRO_BITMAP* power_up_destroy_enemies;
+    ALLEGRO_BITMAP* power_up_repair_engine;
+    ALLEGRO_BITMAP* power_up_missing;
+    ALLEGRO_BITMAP* power_up_invincibility;
     // more powerups might be added, depends on which poor chap ~~is forced~~ volunteers to make more sprites for them
 } SPRITES;
 

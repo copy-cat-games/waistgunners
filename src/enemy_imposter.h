@@ -45,5 +45,6 @@ extern VECTOR IMPOSTER_GUNNERS[2];
 #define ENEMY_IMPOSTER_ENGINE_POINTS 175
 
 void update_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter);
+void kill_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter);
 
 #endif

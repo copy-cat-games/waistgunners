@@ -1,11 +1,17 @@
 #include "power_up.h"
 #include "graphics.h"
+#include "enemy.h"
+#include "bomber.h"
 
 POWER_UP stored_power_ups[MAX_STORED_POWER_UPS];
 
 int MAX_POWER_UP_LIFETIMES[POWER_UP_N] = {
     15 * FRAME_RATE,
     15 * FRAME_RATE,
+    15 * FRAME_RATE,
+    2,
+    2,
+    10 * FRAME_RATE,
 };
 
 // not sure what this is for
@@ -13,9 +19,21 @@ char* names[] = {
     "bigger clip size",
     "faster reload",
     "faster bullets",
+    "destroy enemies",
+    "repair engine",
 };
 
 VECTOR POWER_UP_SIZE = { .x = 16, .y = 16 };
+
+int num_common_power_ups         = 5;
+POWER_UP_TYPE common_power_ups[] = {
+    BIGGER_CLIP_SIZE, FASTER_RELOAD, FASTER_BULLETS, REPAIR_ENGINE, TEMPORARY_INVINCIBILITY
+};
+
+int num_rare_power_ups         = 1;
+POWER_UP_TYPE rare_power_ups[] = {
+    DESTROY_ENEMIES,
+};
 
 // not sure if these are needed
 void (*power_up_actions[POWER_UP_N])();
@@ -31,6 +49,34 @@ void update_power_ups() {
         POWER_UP* p = &stored_power_ups[c];
         if (!p->lifetime) continue;
         if (p->activated) p->lifetime--;
+        if (p->activated && p->lifetime > 0) {
+            // do whatever action
+            switch (p->type) {
+                case DESTROY_ENEMIES:
+                    kill_all_enemies();
+                    break;
+                case REPAIR_ENGINE:
+                    // choose an engine to repair
+                    ;
+                    ENGINE* engine;
+                    bool repaired = false;
+                    for (int c = 0; c < MAX_BOMBERS && !repaired; c++) {
+                        BOMBER* bomber = &(bombers[c]);
+                        for (int d = 0; d < ENGINES_PER_BOMBER && !repaired; d++) {
+                            ENGINE* engine = bomber->engines[d];
+                            if (engine->health >= ENGINE_MAX_HEALTH) continue;
+                            engine->health = ENGINE_MAX_HEALTH;
+                            engine->dead   = false;
+                            // printf("repaired engine %i of bomber %i\n", d, c);
+                            repaired = true;
+                        }
+                    }
+                    break;
+                default:
+                    // do nothing
+                    break;
+            }
+        }
     }
 }
 
@@ -73,5 +119,31 @@ void add_power_up(POWER_UP_TYPE type) {
         stored_power_ups[c] = create_power_up(no_position, power_up_type);
         play_sound(POWERUP_PICKUP);
         return;
+    }
+}
+
+void add_common_power_up() {
+    for (int c = 0; c < MAX_STORED_POWER_UPS; c++) {
+        if (stored_power_ups[c].lifetime) continue;
+        int power_up_type   = rand() % num_common_power_ups;
+        stored_power_ups[c] = create_power_up(no_position, common_power_ups[power_up_type]);
+        play_sound(POWERUP_PICKUP);
+        return;
+    }
+}
+
+void add_rare_power_up() {
+    for (int c = 0; c < MAX_STORED_POWER_UPS; c++) {
+        if (stored_power_ups[c].lifetime) continue;
+        int power_up_type   = rand() % num_rare_power_ups;
+        stored_power_ups[c] = create_power_up(no_position, rare_power_ups[power_up_type]);
+        play_sound(POWERUP_PICKUP);
+        return;
+    }
+}
+
+void reset_stored_power_ups() {
+    for (int c = 0; c < MAX_STORED_POWER_UPS; c++) {
+        stored_power_ups[c].lifetime = 0;
     }
 }

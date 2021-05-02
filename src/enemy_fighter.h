@@ -34,3 +34,4 @@ extern VECTOR FIGHTER_COLLISION_POSITION;
 extern VECTOR FIGHTER_COLLISION_SIZE;
 
 void update_enemy_fighter(ENEMY_FIGHTER_DATA* fighter);
+void kill_enemy_fighter(ENEMY_FIGHTER_DATA* fighter);

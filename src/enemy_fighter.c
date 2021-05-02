@@ -95,7 +95,7 @@ void update_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
     if (!fighter->dead && fighter->health <= 0) {
         play_sound(ENEMY_FIGHTER_DIE);
         score += ENEMY_FIGHTER_POINTS;
-        if (rand() % 4 == 0) add_power_up(-1);
+        if (rand() % 4 == 0) add_common_power_up();
     }
 
     fighter->dead = fighter->health <= 0;
@@ -105,4 +105,9 @@ void update_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
         VECTOR motion         = { .x = 0, .y = -1 };
         add_smoke(fighter_center, motion, fighter->health <= 4);
     }
+}
+
+void kill_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
+    fighter->health = 0;
+    fighter->dead   = true;
 }

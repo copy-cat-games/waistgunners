@@ -4,7 +4,7 @@ LIBS = -lm -lallegro -lallegro_acodec -lallegro_audio \
 	-lallegro_font -lallegro_image -lallegro_primitives -lallegro_ttf
 OBJECTS = obj/graphics.o obj/keyboard.o obj/main.o obj/sounds.o \
 	obj/vector.o obj/game_state.o obj/event.o obj/mouse.o obj/button.o \
-	obj/smoke.o obj/particle.o obj/cloud.o \
+	obj/smoke.o obj/explosion.o obj/particle.o obj/cloud.o \
 	obj/hud.o obj/bullet.o obj/gunner.o obj/engine.o obj/bomber.o obj/power_up.o \
 	obj/enemy_fighter.o obj/enemy_imposter.o obj/enemy_jet.o obj/enemy.o
 
@@ -14,6 +14,8 @@ SOUND_SOURCE_DIR = sounds
 SOUNDS           = $(SOUND_DEST_DIR)/enemy_fighter_die.flac \
 	$(SOUND_DEST_DIR)/enemy_fighter_shoot.flac \
 	$(SOUND_DEST_DIR)/enemy_imposter_die.flac \
+	$(SOUND_DEST_DIR)/enemy_jet_passing.flac \
+	$(SOUND_DEST_DIR)/enemy_jet_die.flac \
 	$(SOUND_DEST_DIR)/engine_dies.flac \
 	$(SOUND_DEST_DIR)/gunner_shoot.flac \
 	$(SOUND_DEST_DIR)/imposter_gunner_shoot.flac \

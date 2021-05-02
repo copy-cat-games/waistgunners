@@ -153,3 +153,22 @@ void update_enemies() {
         imposter_countdown--;
     }
 }
+
+// KILL KILL KILL KILL KILL KILL KILL KILL KILL KILL
+void kill_all_enemies() {
+    for (int c = 0; c < MAX_ENEMIES; c++) {
+        ENEMY* enemy = &enemies[c];
+        if (!enemy->used) continue;
+        switch (enemy->type) {
+            case ENEMY_FIGHTER:
+                ;
+                ENEMY_FIGHTER_DATA* fighter = &(enemy->data.fighter);
+                kill_enemy_fighter(fighter);
+                break;
+            case ENEMY_IMPOSTER:
+                ;
+                ENEMY_IMPOSTER_DATA* imposter = &(enemy->data.imposter);
+                kill_enemy_imposter(imposter);
+        }
+    }
+}

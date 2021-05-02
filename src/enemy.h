@@ -37,6 +37,7 @@ void update_enemies();
 void add_enemy_fighter();
 void add_enemy_imposter();
 void add_enemy_jet();
+void kill_all_enemies(); // KILL KILL KILL KILL KILL KILL
 
 // variables/constants needed for enemy spawning should go here, as spawning is handled by enemy.c
 

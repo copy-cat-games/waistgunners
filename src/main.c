@@ -44,6 +44,7 @@ void restart_game() {
     reset_bombers();
 
     reset_buttons();
+    reset_stored_power_ups();
     main_menu();
 }
 
@@ -81,13 +82,13 @@ void handle_key_down(int keycode) {
         case ALLEGRO_KEY_R:
             debug = !debug;
             break;
-        case ALLEGRO_KEY_Z:
+        case ALLEGRO_KEY_1:
             activate_power_up(0);
             break;
-        case ALLEGRO_KEY_X:
+        case ALLEGRO_KEY_2:
             activate_power_up(1);
             break;
-        case ALLEGRO_KEY_C:
+        case ALLEGRO_KEY_3:
             activate_power_up(2);
             break;
     }

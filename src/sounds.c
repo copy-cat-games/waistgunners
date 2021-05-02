@@ -10,8 +10,10 @@ char* sound_names[NUMBER_OF_SOUNDS] = {
     "enemy_fighter_die.flac",
     "enemy_fighter_shoot.flac",
     "enemy_imposter_die.flac",
-    "engine_dies.flac",
     "gunner_shoot.flac",
+    "enemy_jet_passing.flac",
+    "enemy_jet_die.flac",
+    "engine_dies.flac",
     "imposter_gunner_shoot.flac",
     "powerup_pickup.flac"
 };

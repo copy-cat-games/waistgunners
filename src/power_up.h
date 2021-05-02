@@ -7,11 +7,35 @@
 
 typedef enum POWER_UP_TYPE {
     NONE = -1,
-    BIGGER_CLIP_SIZE = 0,
-    FASTER_RELOAD,
-    FASTER_BULLETS,
+    BIGGER_CLIP_SIZE = 0, // common
+    FASTER_RELOAD, // common
+    FASTER_BULLETS, // common
+    DESTROY_ENEMIES, // rare
+    REPAIR_ENGINE, // common
+    TEMPORARY_INVINCIBILITY, // common
     POWER_UP_N,
 } POWER_UP_TYPE;
+
+extern POWER_UP_TYPE common_power_ups[];
+extern POWER_UP_TYPE rare_power_ups[];
+
+/*
+    planned:
+    - infinite shooting (rare)
+    - increase immunity chance (rare)
+    - invulnerability/invincibility (common)
+    - permanent increase in clip size (permanent)
+    - more engine health (permanent)
+    - passive healing (permanent)
+    - life steal (permanent)
+    - change clip size increase to additive
+
+    group powerups by rarity
+    - common (purple)
+    - rare (blue)
+    - permanent upgrade (green)
+    - missing (grey)
+ */
 
 typedef struct POWER_UP {
     VECTOR position;
@@ -34,5 +58,9 @@ int power_up_activated(POWER_UP_TYPE type);
 
 POWER_UP create_power_up(VECTOR position, POWER_UP_TYPE type);
 void add_power_up(POWER_UP_TYPE type);
+void add_common_power_up();
+void add_rare_power_up();
+
+void reset_stored_power_ups();
 
 #endif

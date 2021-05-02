@@ -161,3 +161,13 @@ void update_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
     }
     imposter->down = all_engines_dead;
 }
+
+void kill_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
+    for (int c = 0; c < ENGINES_PER_IMPOSTER; c++) {
+        ENEMY_IMPOSTER_ENGINE* engine = imposter->engines[c];
+        engine->dead   = true;
+        engine->health = 0;
+    }
+
+    imposter->down = true;
+}
