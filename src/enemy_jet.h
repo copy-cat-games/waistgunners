@@ -2,14 +2,15 @@
 #include "triangle.h"
 #include "game_state.h"
 #include "enemy_missile.h"
+#include "particle.h"
 #include "bullet.h"
 
 #ifndef _ENEMY_JET
 #define _ENEMY_JET
 
 #define MAX_ENEMY_JET_HEALTH 26
-#define ENEMY_JET_Y_SPEED 6
-#define ENEMY_JET_X_SPEED 1
+#define ENEMY_JET_Y_SPEED 1
+#define ENEMY_JET_X_SPEED 0
 
 extern VECTOR JET_SIZE;
 
@@ -27,6 +28,7 @@ typedef struct ENEMY_JET_DATA {
 } ENEMY_JET_DATA;
 
 void update_enemy_jet(ENEMY_JET_DATA* jet);
+TRIANGLE get_triangle(ENEMY_JET_DATA* jet);
 ENEMY_JET_DATA create_enemy_jet();
 
 #endif

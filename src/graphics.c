@@ -587,6 +587,19 @@ void draw_enemy_imposter_debug(ENEMY_IMPOSTER_DATA imposter_data) {
     }
 }
 
+void draw_enemy_jet_debug(ENEMY_JET_DATA jet_data) {
+    // draw the triangle
+    TRIANGLE jet_triangle = get_triangle(&jet_data);
+    al_draw_triangle(
+        jet_triangle.vertices[0].x, jet_triangle.vertices[0].y,
+        jet_triangle.vertices[1].x, jet_triangle.vertices[1].y,
+        jet_triangle.vertices[2].x, jet_triangle.vertices[2].y,
+        debug_colour, 2
+    );
+
+    al_draw_textf(tiny_font, debug_colour, jet_data.position.x - 3, jet_data.position.y - TINY_FONT_SIZE - 1, 0, "%i", jet_data.health);
+}
+
 void draw_debug() {
     if (!debug) return;
     al_set_target_bitmap(draw_buffers[HUD_BUFFER]);
@@ -622,6 +635,11 @@ void draw_debug() {
                 ;
                 ENEMY_IMPOSTER_DATA imposter_data = enemy->data.imposter;
                 draw_enemy_imposter_debug(imposter_data);
+                break;
+            case ENEMY_JET:
+                ;
+                ENEMY_JET_DATA jet_data = enemy->data.jet;
+                draw_enemy_jet_debug(jet_data);
                 break;
         }
     }

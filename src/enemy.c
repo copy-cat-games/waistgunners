@@ -145,6 +145,9 @@ void update_enemies() {
                 ;
                 ENEMY_JET_DATA* jet = &(e->data.jet);
                 update_enemy_jet(jet);
+                if (jet->health <= 0 && (jet->position.y > BUFFER_HEIGHT || jet->position.y < -JET_SIZE.y)) {
+                    e->used = false;
+                }
                 break;
         }
     }

@@ -3,20 +3,23 @@
 
 VECTOR JET_SIZE = { .x = 30, .y = 35 };
 
-// void get_triangle(ENEMY_JET_DATA* jet, VECTOR vertices[]) {
-//     if (jet->direction == DOWN) {
-//         VECTOR points[] = {
-//             jet->position,
-//             { .x = jet->position.x + JET_SIZE.x, .y = jet->position.y },
-//             { .x = jet->position.x + JET_SIZE.x / 2, .y = jet->position.y + JET_SIZE.y },
-//         };
-//         vertices = points;
-//     } else {
-//         VECTOR points[] = {
-
-//         };
-//     }
-// }
+TRIANGLE get_triangle(ENEMY_JET_DATA* jet) {
+    if (jet->direction == DOWN) {
+        VECTOR points[] = {
+            jet->position,
+            { .x = jet->position.x + JET_SIZE.x, .y = jet->position.y },
+            { .x = jet->position.x + JET_SIZE.x / 2, .y = jet->position.y + JET_SIZE.y },
+        };
+        return create_triangle(points);
+    } else {
+        VECTOR points[] = {
+            { .x = jet->position.x, .y = jet->position.y + JET_SIZE.y },
+            { .x = jet->position.x + JET_SIZE.x / 2, .y = jet->position.y },
+            add(jet->position, JET_SIZE)
+        };
+        return create_triangle(points);
+    }
+}
 
 void update_enemy_jet(ENEMY_JET_DATA* jet) {
     /*
@@ -41,12 +44,23 @@ void update_enemy_jet(ENEMY_JET_DATA* jet) {
         jet->motion.x *= -1;
     }
 
+    TRIANGLE jet_triangle = get_triangle(jet);
+
     for (int c = 0; c < MAX_BULLETS; c++) {
         BULLET* b = &bullets[c];
         if (b->alliance != PLAYER_BULLET || !b->used) continue;
         // the jet requires a different collision detection method
         // we're going to approximate the jet as a triangle, and the bullet as a point
+        if (triangle_collision(jet_triangle, b->position)) {
+            b->used = false;
+            jet->health--;
+        }
+    }
 
+    if (frames % 2 == 0 || frames % 3 == 0) {
+        VECTOR jet_center = add(jet->position, multiply(JET_SIZE, 0.5));
+        VECTOR motion     = { .x = 0, .y = -jet->motion.y };
+        add_smoke(jet_center, motion, jet->health < 0);
     }
 }
 
