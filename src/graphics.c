@@ -111,8 +111,6 @@ void display_post_draw(){
     al_flip_display();
 }
 
-const VECTOR JET_SIZE = { .x = 30, .y = 35 };
-
 const VECTOR RETICLE_SIZE = { .x = 17, .y = 17 };
 const VECTOR CLIP_SIZE    = { .x = 4,  .y = 10 };
 
@@ -350,6 +348,11 @@ void draw_enemy_imposter(ENEMY_IMPOSTER_DATA* imposter) {
     }
 }
 
+void draw_enemy_jet(ENEMY_JET_DATA* jet) {
+    ALLEGRO_BITMAP* sprite = jet->direction == DOWN ? sprites.jet_down : sprites.jet_up;
+    al_draw_bitmap(sprite, jet->position.x, jet->position.y, 0);
+}
+
 void draw_enemies() {
     for (int c = 0; c < MAX_ENEMIES; c++) {
         ENEMY* e = &enemies[c];
@@ -360,6 +363,9 @@ void draw_enemies() {
                 break;
             case ENEMY_IMPOSTER:
                 draw_enemy_imposter(&(e->data.imposter));
+                break;
+            case ENEMY_JET:
+                draw_enemy_jet(&(e->data.jet));
                 break;
             // more enemy types to come! promise!
         }

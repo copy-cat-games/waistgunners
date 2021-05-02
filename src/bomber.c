@@ -197,6 +197,34 @@ ENGINE* select_random_engine() {
     return NULL;
 }
 
+ENGINE* select_damaged_engine() {
+    // what the fuck!?
+
+    int index = 0;
+    int indices[MAX_BOMBERS * ENGINES_PER_BOMBER];
+    memset(indices, -1, MAX_BOMBERS * ENGINES_PER_BOMBER * sizeof(int));
+    for (int c = 0; c < MAX_BOMBERS * ENGINES_PER_BOMBER; c++) {
+        if (engines[c].health < ENGINE_MAX_HEALTH) {
+            indices[index] = c;
+            // printf("engine %i is damaged.\n", c);
+            index++;
+            // printf("index is now %i\n", index);
+        }
+    }
+    index = 0;
+    for (int c = 0; c < MAX_BOMBERS * ENGINES_PER_BOMBER; c++) {
+        if (indices[c] == -1) {
+            index = c;
+            break;
+        }
+    }
+
+    // printf("there are %i damaged engines.\n", index);
+    if (index == 0) return NULL;
+
+    return &(engines[indices[rand() % index]]);
+}
+
 GUNNER* select_gunner() {
     for (int c = 0; c < MAX_BOMBERS; c++) {
         BOMBER* b = &bombers[c];

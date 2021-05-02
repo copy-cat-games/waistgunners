@@ -3,10 +3,10 @@
 LIBS = -lm -lallegro -lallegro_acodec -lallegro_audio \
 	-lallegro_font -lallegro_image -lallegro_primitives -lallegro_ttf
 OBJECTS = obj/graphics.o obj/keyboard.o obj/main.o obj/sounds.o \
-	obj/vector.o obj/game_state.o obj/event.o obj/mouse.o obj/button.o \
+	obj/vector.o obj/triangle.o obj/game_state.o obj/event.o obj/mouse.o obj/button.o \
 	obj/smoke.o obj/explosion.o obj/particle.o obj/cloud.o \
 	obj/hud.o obj/bullet.o obj/gunner.o obj/engine.o obj/bomber.o obj/power_up.o \
-	obj/enemy_fighter.o obj/enemy_imposter.o obj/enemy_jet.o obj/enemy.o
+	obj/enemy_fighter.o obj/enemy_imposter.o obj/enemy_jet.o obj/enemy_missile.o obj/enemy.o
 
 # add more sounds
 SOUND_DEST_DIR   = build

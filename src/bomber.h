@@ -30,6 +30,7 @@ void reset_bombers();
 
 BOMBER* select_random_bomber();
 ENGINE* select_random_engine();
+ENGINE* select_damaged_engine();
 GUNNER* select_gunner();
 
 #endif

@@ -95,7 +95,8 @@ void update_enemy_fighter(ENEMY_FIGHTER_DATA* fighter) {
     if (!fighter->dead && fighter->health <= 0) {
         play_sound(ENEMY_FIGHTER_DIE);
         score += ENEMY_FIGHTER_POINTS;
-        if (rand() % 4 == 0) add_common_power_up();
+        // if (rand() % 4 == 0) add_common_power_up();
+        add_power_up(REPAIR_ENGINE);
     }
 
     fighter->dead = fighter->health <= 0;

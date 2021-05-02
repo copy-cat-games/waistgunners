@@ -15,12 +15,14 @@ typedef enum ENEMY_TYPE {
     ENEMY_FIGHTER = 0,
     ENEMY_IMPOSTER,
     ENEMY_JET,
+    ENEMY_MISSILE,
 } ENEMY_TYPE;
 
 typedef union ENEMY_DATA {
     ENEMY_FIGHTER_DATA fighter;
     ENEMY_IMPOSTER_DATA imposter;
     ENEMY_JET_DATA jet;
+    ENEMY_MISSILE_DATA missile;
 } ENEMY_DATA;
 
 typedef struct ENEMY {

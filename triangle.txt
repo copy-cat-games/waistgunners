@@ -1,0 +1,166 @@
+	.file	"triangle.c"
+	.text
+	.globl	create_triangle
+	.type	create_triangle, @function
+create_triangle:
+.LFB0:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movq	%rdi, -40(%rbp)
+	movq	%rsi, -48(%rbp)
+	movq	-48(%rbp), %rax
+	movq	(%rax), %rax
+	movq	%rax, -32(%rbp)
+	movq	-48(%rbp), %rax
+	movq	8(%rax), %rax
+	movq	%rax, -24(%rbp)
+	movq	-48(%rbp), %rax
+	movq	16(%rax), %rax
+	movq	%rax, -16(%rbp)
+	movq	-40(%rbp), %rcx
+	movq	-32(%rbp), %rax
+	movq	-24(%rbp), %rdx
+	movq	%rax, (%rcx)
+	movq	%rdx, 8(%rcx)
+	movq	-16(%rbp), %rax
+	movq	%rax, 16(%rcx)
+	movq	-40(%rbp), %rax
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE0:
+	.size	create_triangle, .-create_triangle
+	.globl	calculate_perimeter
+	.type	calculate_perimeter, @function
+calculate_perimeter:
+.LFB1:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$16, %rsp
+	pxor	%xmm0, %xmm0
+	movss	%xmm0, -4(%rbp)
+	movl	$0, -8(%rbp)
+	jmp	.L4
+.L5:
+	movl	-8(%rbp), %eax
+	leal	1(%rax), %edx
+	movslq	%edx, %rax
+	imulq	$1431655766, %rax, %rax
+	shrq	$32, %rax
+	movl	%edx, %ecx
+	sarl	$31, %ecx
+	subl	%ecx, %eax
+	movl	%eax, %ecx
+	addl	%ecx, %ecx
+	addl	%eax, %ecx
+	movl	%edx, %eax
+	subl	%ecx, %eax
+	cltq
+	movq	16(%rbp,%rax,8), %rdx
+	movl	-8(%rbp), %eax
+	cltq
+	movq	16(%rbp,%rax,8), %rax
+	movq	%rdx, %xmm1
+	movq	%rax, %xmm0
+	call	subtract@PLT
+	movq	%xmm0, %rax
+	movq	%rax, -16(%rbp)
+	movq	-16(%rbp), %rax
+	movq	%rax, %xmm0
+	call	get_length@PLT
+	movss	-4(%rbp), %xmm1
+	addss	%xmm1, %xmm0
+	movss	%xmm0, -4(%rbp)
+	addl	$1, -8(%rbp)
+.L4:
+	cmpl	$2, -8(%rbp)
+	jle	.L5
+	movss	-4(%rbp), %xmm0
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE1:
+	.size	calculate_perimeter, .-calculate_perimeter
+	.globl	calculate_area
+	.type	calculate_area, @function
+calculate_area:
+.LFB2:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	subq	$32, %rsp
+	subq	$8, %rsp
+	pushq	32(%rbp)
+	pushq	24(%rbp)
+	pushq	16(%rbp)
+	call	calculate_perimeter
+	addq	$32, %rsp
+	movd	%xmm0, %eax
+	movl	%eax, -12(%rbp)
+	movss	-12(%rbp), %xmm0
+	movss	%xmm0, -4(%rbp)
+	movl	$0, -8(%rbp)
+	jmp	.L8
+.L9:
+	movl	-8(%rbp), %eax
+	leal	1(%rax), %edx
+	movslq	%edx, %rax
+	imulq	$1431655766, %rax, %rax
+	shrq	$32, %rax
+	movl	%edx, %ecx
+	sarl	$31, %ecx
+	subl	%ecx, %eax
+	movl	%eax, %ecx
+	addl	%ecx, %ecx
+	addl	%eax, %ecx
+	movl	%edx, %eax
+	subl	%ecx, %eax
+	cltq
+	movq	16(%rbp,%rax,8), %rdx
+	movl	-8(%rbp), %eax
+	cltq
+	movq	16(%rbp,%rax,8), %rax
+	movq	%rdx, %xmm1
+	movq	%rax, %xmm0
+	call	subtract@PLT
+	movq	%xmm0, %rax
+	movq	%rax, -20(%rbp)
+	movq	-20(%rbp), %rax
+	movq	%rax, %xmm0
+	call	get_length@PLT
+	movss	-12(%rbp), %xmm1
+	subss	%xmm0, %xmm1
+	movss	-4(%rbp), %xmm0
+	mulss	%xmm1, %xmm0
+	movss	%xmm0, -4(%rbp)
+	addl	$1, -8(%rbp)
+.L8:
+	cmpl	$2, -8(%rbp)
+	jle	.L9
+	pxor	%xmm2, %xmm2
+	cvtss2sd	-4(%rbp), %xmm2
+	movq	%xmm2, %rax
+	movq	%rax, %xmm0
+	call	sqrt@PLT
+	cvtsd2ss	%xmm0, %xmm0
+	leave
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE2:
+	.size	calculate_area, .-calculate_area
+	.ident	"GCC: (Debian 10.2.1-6) 10.2.1 20210110"
+	.section	.note.GNU-stack,"",@progbits

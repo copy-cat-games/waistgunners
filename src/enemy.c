@@ -16,6 +16,8 @@ VECTOR get_enemy_position(ENEMY* enemy) {
             return enemy->data.imposter.position;
         case ENEMY_JET:
             return enemy->data.jet.position;
+        case ENEMY_MISSILE:
+            return enemy->data.missile.position;
         default:
             return v;
     }
@@ -105,6 +107,12 @@ void reset_imposter_countdown() {
     imposter_countdown = (int) (seconds * FRAME_RATE);
 }
 
+void add_enemy_jet() {
+    ENEMY_JET_DATA jet = create_enemy_jet();
+    ENEMY_DATA data    = { .jet = jet };
+    add_enemy(data, ENEMY_JET);
+}
+
 void update_enemies() {
     // also handles spawning of enemies, as well
     for (int c = 0; c < MAX_ENEMIES; c++) {
@@ -132,6 +140,11 @@ void update_enemies() {
                     e->used         = false;
                     reset_imposter_countdown();
                 }
+                break;
+            case ENEMY_JET:
+                ;
+                ENEMY_JET_DATA* jet = &(e->data.jet);
+                update_enemy_jet(jet);
                 break;
         }
     }
