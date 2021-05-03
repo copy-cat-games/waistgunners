@@ -30,5 +30,6 @@ typedef struct ENEMY_JET_DATA {
 void update_enemy_jet(ENEMY_JET_DATA* jet);
 TRIANGLE get_triangle(ENEMY_JET_DATA* jet);
 ENEMY_JET_DATA create_enemy_jet();
+void kill_enemy_jet(ENEMY_JET_DATA* jet);
 
 #endif

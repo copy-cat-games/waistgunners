@@ -90,3 +90,7 @@ ENEMY_JET_DATA create_enemy_jet() {
 
     return jet;
 }
+
+void kill_enemy_jet(ENEMY_JET_DATA* jet) {
+    jet->health = 0;
+}

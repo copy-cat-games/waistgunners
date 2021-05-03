@@ -23,6 +23,7 @@ typedef struct ENEMY_MISSILE_DATA {
 } ENEMY_MISSILE_DATA;
 
 void update_enemy_missile(ENEMY_MISSILE_DATA* missile);
-ENEMY_MISSILE_DATA create_missile(VECTOR pos, int x_direction);
+ENEMY_MISSILE_DATA create_missile(VECTOR pos);
+void kill_enemy_missile(ENEMY_MISSILE_DATA* missile);
 
 #endif

@@ -113,8 +113,8 @@ void add_enemy_jet() {
     add_enemy(data, ENEMY_JET);
 }
 
-void add_enemy_missile(VECTOR pos, int x_direction) {
-    ENEMY_MISSILE_DATA missile = create_missile(pos, x_direction);
+void add_enemy_missile(VECTOR pos) {
+    ENEMY_MISSILE_DATA missile = create_missile(pos);
     ENEMY_DATA data            = { .missile = missile };
     add_enemy(data, ENEMY_MISSILE);
 }
@@ -151,9 +151,9 @@ void update_enemies() {
                 ;
                 ENEMY_JET_DATA* jet = &(e->data.jet);
                 update_enemy_jet(jet);
-                if (jet->direction == DOWN && !jet->fired) {
+                if (jet->direction == DOWN && !jet->fired && jet->position.y > BUFFER_HEIGHT / 8) {
                     jet->fired = true;
-                    add_enemy_missile(jet->position, sign(jet->motion.x));
+                    add_enemy_missile(jet->position);
                 }
                 if (jet->health <= 0 && (jet->position.y > BUFFER_HEIGHT || jet->position.y < -JET_SIZE.y)) {
                     e->used = false;
@@ -163,6 +163,9 @@ void update_enemies() {
                 ;
                 ENEMY_MISSILE_DATA* missile = &(e->data.missile);
                 update_enemy_missile(missile);
+                if (missile->health <= 0) {
+                    e->used = false;
+                }
                 break;
         }
     }
@@ -200,6 +203,17 @@ void kill_all_enemies() {
                 ;
                 ENEMY_IMPOSTER_DATA* imposter = &(enemy->data.imposter);
                 kill_enemy_imposter(imposter);
+                break;
+            case ENEMY_JET:
+                ;
+                ENEMY_JET_DATA* jet = &(enemy->data.jet);
+                kill_enemy_jet(jet);
+                break;
+            case ENEMY_MISSILE:
+                ;
+                ENEMY_MISSILE_DATA* missile = &(enemy->data.missile);
+                kill_enemy_missile(missile);
+                break;
         }
     }
 }
