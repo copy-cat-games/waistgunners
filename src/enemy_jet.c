@@ -38,6 +38,7 @@ void update_enemy_jet(ENEMY_JET_DATA* jet) {
     if (jet->position.y < -JET_SIZE.y) {
         jet->direction = DOWN;
         jet->motion.y  = ENEMY_JET_Y_SPEED;
+        jet->fired     = false;
     }
 
     if (jet->position.x < -JET_SIZE.x || jet->position.x > BUFFER_WIDTH) {

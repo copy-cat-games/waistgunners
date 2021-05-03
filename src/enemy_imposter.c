@@ -15,11 +15,6 @@ VECTOR IMPOSTER_GUNNERS[2] = {
     { .x = 40, .y = 36 },
 };
 
-float sign(float number) {
-    if (number) return (number / fabs(number));
-    return 0;
-}
-
 bool update_imposter_engines(ENEMY_IMPOSTER_ENGINE* engines[]) {
     // check for collision, make some smoke...
 

@@ -63,6 +63,8 @@ typedef struct SPRITES {
     ALLEGRO_BITMAP* imposter_engine_dead;
     ALLEGRO_BITMAP* jet_up;
     ALLEGRO_BITMAP* jet_down;
+    ALLEGRO_BITMAP* missile;
+    ALLEGRO_BITMAP* missile_fire[4];
 
     ALLEGRO_BITMAP* reticle_aiming;
     ALLEGRO_BITMAP* reticle_firing;

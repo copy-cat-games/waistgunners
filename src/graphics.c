@@ -158,6 +158,11 @@ void init_sprites() {
     sprites.imposter_engine_dead    = get_sprite(40, 59, IMPOSTER_ENGINE_SIZE);
     sprites.jet_up                  = get_sprite(197, 0, JET_SIZE);
     sprites.jet_down                = get_sprite(167, 0, JET_SIZE);
+    sprites.missile                 = get_sprite(130, 32, MISSILE_SIZE);
+    
+    for (int c = 0; c < 4; c++) {
+        sprites.missile_fire[c] = get_sprite(130 + c * 10, 53, MISSILE_FIRE_SIZE);
+    }
 
     sprites.reticle_aiming = get_sprite(64, 62, RETICLE_SIZE);
     sprites.reticle_firing = get_sprite(81, 62, RETICLE_SIZE);
@@ -197,6 +202,11 @@ void destroy_sprites() {
     al_destroy_bitmap(sprites.imposter_engine_dead);
     al_destroy_bitmap(sprites.jet_up);
     al_destroy_bitmap(sprites.jet_down);
+    al_destroy_bitmap(sprites.missile);
+    
+    for (int c = 0; c < 4; c++) {
+        al_destroy_bitmap(sprites.missile_fire[c]);
+    }
 
     al_destroy_bitmap(sprites.reticle_aiming);
     al_destroy_bitmap(sprites.reticle_firing);
@@ -353,6 +363,23 @@ void draw_enemy_jet(ENEMY_JET_DATA* jet) {
     al_draw_bitmap(sprite, jet->position.x, jet->position.y, 0);
 }
 
+void draw_enemy_missile(ENEMY_MISSILE_DATA* missile) {
+    al_draw_bitmap(sprites.missile, missile->position.x, missile->position.y, 0);
+    int counter = frames % 32;
+    ALLEGRO_BITMAP* fire_sprite;
+    VECTOR draw_fire_position = add(missile->position, MISSILE_FIRE_OFFSET);
+    if (counter < 12 ) {
+        fire_sprite = sprites.missile_fire[0];
+    } else if (counter < 20) {
+        fire_sprite = sprites.missile_fire[1];
+    } else if (counter < 24) {
+        fire_sprite = sprites.missile_fire[2];
+    } else {
+        fire_sprite = sprites.missile_fire[3];
+    }
+    al_draw_bitmap(fire_sprite, draw_fire_position.x, draw_fire_position.y, 0);
+}
+
 void draw_enemies() {
     for (int c = 0; c < MAX_ENEMIES; c++) {
         ENEMY* e = &enemies[c];
@@ -366,6 +393,9 @@ void draw_enemies() {
                 break;
             case ENEMY_JET:
                 draw_enemy_jet(&(e->data.jet));
+                break;
+            case ENEMY_MISSILE:
+                draw_enemy_missile(&(e->data.missile));
                 break;
             // more enemy types to come! promise!
         }
@@ -663,7 +693,7 @@ void draw() {
     if (!night) draw_bullets();
     draw_particles();
     if (night) {
-        draw_night_overlay();
+        // draw_night_overlay();
         draw_bullets();
     }
     draw_hud();

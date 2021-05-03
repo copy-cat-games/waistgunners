@@ -17,3 +17,9 @@ void must_init(bool test, char* description) {
 float between(float lower, float higher) {
     return lower + ((float) rand() / (float) RAND_MAX) * (higher - lower);
 }
+
+int sign(float x) {
+    if (x < 0) return -1;
+    if (x > 0) return 1;
+    return 0;
+}

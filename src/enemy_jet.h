@@ -9,8 +9,8 @@
 #define _ENEMY_JET
 
 #define MAX_ENEMY_JET_HEALTH 26
-#define ENEMY_JET_Y_SPEED 1
-#define ENEMY_JET_X_SPEED 0
+#define ENEMY_JET_Y_SPEED 5
+#define ENEMY_JET_X_SPEED 1
 
 extern VECTOR JET_SIZE;
 

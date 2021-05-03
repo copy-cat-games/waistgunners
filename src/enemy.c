@@ -113,6 +113,12 @@ void add_enemy_jet() {
     add_enemy(data, ENEMY_JET);
 }
 
+void add_enemy_missile(VECTOR pos, int x_direction) {
+    ENEMY_MISSILE_DATA missile = create_missile(pos, x_direction);
+    ENEMY_DATA data            = { .missile = missile };
+    add_enemy(data, ENEMY_MISSILE);
+}
+
 void update_enemies() {
     // also handles spawning of enemies, as well
     for (int c = 0; c < MAX_ENEMIES; c++) {
@@ -145,9 +151,18 @@ void update_enemies() {
                 ;
                 ENEMY_JET_DATA* jet = &(e->data.jet);
                 update_enemy_jet(jet);
+                if (jet->direction == DOWN && !jet->fired) {
+                    jet->fired = true;
+                    add_enemy_missile(jet->position, sign(jet->motion.x));
+                }
                 if (jet->health <= 0 && (jet->position.y > BUFFER_HEIGHT || jet->position.y < -JET_SIZE.y)) {
                     e->used = false;
                 }
+                break;
+            case ENEMY_MISSILE:
+                ;
+                ENEMY_MISSILE_DATA* missile = &(e->data.missile);
+                update_enemy_missile(missile);
                 break;
         }
     }
