@@ -155,7 +155,7 @@ void update_enemies() {
                     jet->fired = true;
                     add_enemy_missile(jet->position);
                 }
-                if (jet->health <= 0 && (jet->position.y > BUFFER_HEIGHT || jet->position.y < -JET_SIZE.y)) {
+                if (jet->health <= 0 && (jet->position.y >= BUFFER_HEIGHT || jet->position.y <= -JET_SIZE.y)) {
                     e->used = false;
                 }
                 break;
@@ -181,6 +181,10 @@ void update_enemies() {
 
     if (!(enemy_imposters || imposter_countdown)) {
         add_enemy_imposter();
+    }
+
+    if (score > 1000 && !(frames % 120) && rand() % 3) {
+        add_enemy_jet();
     }
 
     if (!enemy_imposters) {

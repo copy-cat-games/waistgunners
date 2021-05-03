@@ -128,8 +128,6 @@ int main() {
     game_state = GAME_OVER;
     main_menu();
 
-    add_enemy_jet();
-
     while (running) {
         al_wait_for_event(queue, &event);
 

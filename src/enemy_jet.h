@@ -12,6 +12,9 @@
 #define ENEMY_JET_Y_SPEED 5
 #define ENEMY_JET_X_SPEED 1
 
+#define ENEMY_JET_TURNAROUND 75
+#define ENEMY_JET_POINTS     150
+
 extern VECTOR JET_SIZE;
 
 typedef enum ENEMY_JET_DIRECTION {
@@ -24,7 +27,10 @@ typedef struct ENEMY_JET_DATA {
     VECTOR motion;
     ENEMY_JET_DIRECTION direction;
     int health;
+    int turnaround_countdown;
     bool fired;
+    bool dead;
+    bool turnaround;
 } ENEMY_JET_DATA;
 
 void update_enemy_jet(ENEMY_JET_DATA* jet);

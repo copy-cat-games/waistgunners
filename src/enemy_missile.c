@@ -32,6 +32,10 @@ void update_enemy_missile(ENEMY_MISSILE_DATA* missile) {
         if (collision(b->position, BULLET_COLLISION_SIZE, missile->position, MISSILE_SIZE)) {
             b->used = false;
             missile->health--;
+            if (!missile->health) {
+                score += ENEMY_MISSILE_POINTS;
+                play_sound(ENGINE_DIE);
+            }
         }
     }
 
@@ -42,6 +46,7 @@ void update_enemy_missile(ENEMY_MISSILE_DATA* missile) {
             ENGINE* engine = bomber->engines[d];
             if (collision(missile->position, MISSILE_SIZE, engine->position, ENGINE_SIZE)) {
                 engine->health  = 0;
+                engine->dead    = true;
                 missile->health = 0;
             }
         }

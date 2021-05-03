@@ -28,17 +28,28 @@ void update_enemy_jet(ENEMY_JET_DATA* jet) {
         - the jet then goes from buttom to top, without firing
         repeat
     */
-    jet->position = add(jet->position, jet->motion);
-
-    if (jet->position.y > BUFFER_HEIGHT) {
-        jet->direction = UP;
-        jet->motion.y  = -ENEMY_JET_Y_SPEED;
+    if (jet->turnaround_countdown > 0) {
+        jet->turnaround_countdown--;
+    } else {
+        jet->position = add(jet->position, jet->motion);
     }
 
-    if (jet->position.y < -JET_SIZE.y) {
-        jet->direction = DOWN;
-        jet->motion.y  = ENEMY_JET_Y_SPEED;
-        jet->fired     = false;
+    if (jet->position.y > BUFFER_HEIGHT && !jet->turnaround) {
+        jet->direction            = UP;
+        jet->motion.y             = -ENEMY_JET_Y_SPEED;
+        jet->position.y           = BUFFER_HEIGHT;
+        jet->turnaround           = true;
+        jet->turnaround_countdown = ENEMY_JET_TURNAROUND;
+    } else if (jet->position.y < -JET_SIZE.y && !jet->turnaround) {
+        jet->direction            = DOWN;
+        jet->motion.y             = ENEMY_JET_Y_SPEED;
+        jet->position.y           = -JET_SIZE.y;
+        jet->fired                = false;
+        jet->turnaround           = true;
+        jet->turnaround_countdown = ENEMY_JET_TURNAROUND;
+        play_sound(ENEMY_JET_PASSING);
+    } else {
+        jet->turnaround = false;
     }
 
     if (jet->position.x < -JET_SIZE.x || jet->position.x > BUFFER_WIDTH) {
@@ -55,6 +66,12 @@ void update_enemy_jet(ENEMY_JET_DATA* jet) {
         if (triangle_collision(jet_triangle, b->position)) {
             b->used = false;
             jet->health--;
+            if (!jet->dead) {
+                score    += ENEMY_JET_POINTS;
+                jet->dead = true;
+                play_sound(ENEMY_JET_DIE);
+                if (rand() % 2) add_rare_power_up();
+            }
         }
     }
 
@@ -83,9 +100,12 @@ ENEMY_JET_DATA create_enemy_jet() {
             .x  = x < (BUFFER_WIDTH / 2) ? ENEMY_JET_X_SPEED : -ENEMY_JET_X_SPEED,
             .y  = ENEMY_JET_Y_SPEED,
         },
-        .health    = MAX_ENEMY_JET_HEALTH,
-        .fired     = false,
-        .direction = DOWN,
+        .health               = MAX_ENEMY_JET_HEALTH,
+        .fired                = false,
+        .dead                 = false,
+        .direction            = DOWN,
+        .turnaround           = false,
+        .turnaround_countdown = 0,
     };
 
     return jet;

@@ -630,6 +630,15 @@ void draw_enemy_jet_debug(ENEMY_JET_DATA jet_data) {
     al_draw_textf(tiny_font, debug_colour, jet_data.position.x - 3, jet_data.position.y - TINY_FONT_SIZE - 1, 0, "%i", jet_data.health);
 }
 
+void draw_enemy_missile_debug(ENEMY_MISSILE_DATA missile_data) {
+    VECTOR end = add(missile_data.position, MISSILE_SIZE);
+    al_draw_rectangle(
+        missile_data.position.x, missile_data.position.y,
+        end.x, end.y, debug_colour, 2
+    );
+    al_draw_textf(tiny_font, debug_colour, missile_data.position.x - 3, missile_data.position.y - (TINY_FONT_SIZE + 1), 0, "%i", missile_data.health);
+}
+
 void draw_debug() {
     if (!debug) return;
     al_set_target_bitmap(draw_buffers[HUD_BUFFER]);
@@ -671,6 +680,11 @@ void draw_debug() {
                 ENEMY_JET_DATA jet_data = enemy->data.jet;
                 draw_enemy_jet_debug(jet_data);
                 break;
+            case ENEMY_MISSILE:
+                ;
+                ENEMY_MISSILE_DATA missile_data = enemy->data.missile;
+                draw_enemy_missile_debug(missile_data);
+                break;
         }
     }
 
@@ -693,7 +707,7 @@ void draw() {
     if (!night) draw_bullets();
     draw_particles();
     if (night) {
-        // draw_night_overlay();
+        if (!debug) draw_night_overlay();
         draw_bullets();
     }
     draw_hud();
