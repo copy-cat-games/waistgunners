@@ -1,5 +1,8 @@
 # i have no idea what the fuck i'm doing. help.
 
+# found this
+# https://makefiletutorial.com/
+
 LIBS = -lm -lallegro -lallegro_acodec -lallegro_audio \
 	-lallegro_font -lallegro_image -lallegro_primitives -lallegro_ttf
 OBJECTS = obj/graphics.o obj/keyboard.o obj/main.o obj/sounds.o \

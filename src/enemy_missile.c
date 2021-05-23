@@ -44,9 +44,12 @@ void update_enemy_missile(ENEMY_MISSILE_DATA* missile) {
         if (bomber->down) continue;
         for (int d = 0; d < ENGINES_PER_BOMBER; d++) {
             ENGINE* engine = bomber->engines[d];
+            // yanderedev style if statement nesting. fantastic.
             if (collision(missile->position, MISSILE_SIZE, engine->position, ENGINE_SIZE)) {
-                engine->health  = 0;
-                engine->dead    = true;
+                if (!power_up_activated(TEMPORARY_INVINCIBILITY)) {
+                    engine->health  = 0;
+                    engine->dead    = true;
+                }
                 missile->health = 0;
             }
         }

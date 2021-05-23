@@ -17,3 +17,7 @@ void update_hud() {
 long get_display_score() {
     return display_score;
 }
+
+void reset_display_score() {
+    display_score = 0;
+}

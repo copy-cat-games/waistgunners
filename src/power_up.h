@@ -29,6 +29,7 @@ extern POWER_UP_TYPE rare_power_ups[];
     - passive healing (permanent)
     - life steal (permanent)
     - change clip size increase to additive
+    - revive a bomber (rare)
 
     group powerups by rarity
     - common (purple)

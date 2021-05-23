@@ -103,7 +103,6 @@ void add_enemy_imposter() {
 
 void reset_imposter_countdown() {
     int seconds = (int) between(15, 50);
-    printf("next imposter coming in %i seconds.\n", seconds);
     imposter_countdown = (int) (seconds * FRAME_RATE);
 }
 
@@ -183,7 +182,7 @@ void update_enemies() {
         add_enemy_imposter();
     }
 
-    if (score > 1000 && !(frames % 120) && rand() % 3) {
+    if (score > 1000 && !(frames % 900) && rand() % 3) {
         add_enemy_jet();
     }
 

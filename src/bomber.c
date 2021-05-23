@@ -204,11 +204,10 @@ ENGINE* select_damaged_engine() {
     int indices[MAX_BOMBERS * ENGINES_PER_BOMBER];
     memset(indices, -1, MAX_BOMBERS * ENGINES_PER_BOMBER * sizeof(int));
     for (int c = 0; c < MAX_BOMBERS * ENGINES_PER_BOMBER; c++) {
+        if (bombers[(int) c / ENGINES_PER_BOMBER].down) continue; // don't choose an engine from a downed bomber
         if (engines[c].health < ENGINE_MAX_HEALTH) {
             indices[index] = c;
-            // printf("engine %i is damaged.\n", c);
             index++;
-            // printf("index is now %i\n", index);
         }
     }
     index = 0;
@@ -219,7 +218,6 @@ ENGINE* select_damaged_engine() {
         }
     }
 
-    // printf("there are %i damaged engines.\n", index);
     if (index == 0) return NULL;
 
     return &(engines[indices[rand() % index]]);

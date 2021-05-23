@@ -56,22 +56,7 @@ void update_power_ups() {
                     kill_all_enemies();
                     break;
                 case REPAIR_ENGINE:
-                    // choose an engine to repair
                     ;
-                    // ENGINE* engine;
-                    // bool repaired = false;
-                    // for (int c = 0; c < MAX_BOMBERS && !repaired; c++) {
-                    //     BOMBER* bomber = &(bombers[c]);
-                    //     for (int d = 0; d < ENGINES_PER_BOMBER && !repaired; d++) {
-                    //         ENGINE* engine = bomber->engines[d];
-                    //         if (engine->health >= ENGINE_MAX_HEALTH) continue;
-                    //         engine->health = ENGINE_MAX_HEALTH;
-                    //         engine->dead   = false;
-                    //         // printf("repaired engine %i of bomber %i\n", d, c);
-                    //         repaired = true;
-                    //     }
-                    // }
-
                     ENGINE* engine = select_damaged_engine();
                     if (engine == NULL) break;
                     engine->health = ENGINE_MAX_HEALTH;

@@ -8,7 +8,7 @@
 #ifndef _ENEMY_JET
 #define _ENEMY_JET
 
-#define MAX_ENEMY_JET_HEALTH 26
+#define MAX_ENEMY_JET_HEALTH 10
 #define ENEMY_JET_Y_SPEED 5
 #define ENEMY_JET_X_SPEED 1
 

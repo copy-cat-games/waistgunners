@@ -29,6 +29,7 @@ void restart_game() {
 
     frames = 0;
     score  = 0;
+    reset_display_score();
 
     // clear the enemies, reset the imposter countdown
     // any future enemies with special variables should also reset. i know i'll forget something, dammit
