@@ -37,5 +37,3 @@ If you're doing this on an older computer like me, a madman, then go get some te
 - programmming by clocks-in-a-cooler
 
 - font is "Press Start 2P", from Google Fonts
-
-&mdash; _FMM Game Dev Club_
