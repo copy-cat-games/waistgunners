@@ -3,26 +3,14 @@
 # found this
 # https://makefiletutorial.com/
 
-LIBS = -lm -lallegro -lallegro_acodec -lallegro_audio \
-	-lallegro_font -lallegro_image -lallegro_primitives -lallegro_ttf
-OBJECTS = obj/graphics.o obj/keyboard.o obj/main.o obj/sounds.o \
-	obj/vector.o obj/triangle.o obj/game_state.o obj/event.o obj/mouse.o obj/button.o \
-	obj/smoke.o obj/explosion.o obj/particle.o obj/cloud.o \
-	obj/hud.o obj/bullet.o obj/gunner.o obj/engine.o obj/bomber.o obj/power_up.o \
-	obj/enemy_fighter.o obj/enemy_imposter.o obj/enemy_jet.o obj/enemy_missile.o obj/enemy.o
+LIBS    = -lm -lallegro -lallegro_acodec -lallegro_audio -lallegro_font -lallegro_image -lallegro_primitives -lallegro_ttf
+OBJECTS = $(patsubst src/%.c,obj/%.o,$(wildcard src/*.c))
 
 # add more sounds
 SOUND_DEST_DIR   = build
 SOUND_SOURCE_DIR = sounds
-SOUNDS           = $(SOUND_DEST_DIR)/enemy_fighter_die.flac \
-	$(SOUND_DEST_DIR)/enemy_fighter_shoot.flac \
-	$(SOUND_DEST_DIR)/enemy_imposter_die.flac \
-	$(SOUND_DEST_DIR)/enemy_jet_passing.flac \
-	$(SOUND_DEST_DIR)/enemy_jet_die.flac \
-	$(SOUND_DEST_DIR)/engine_dies.flac \
-	$(SOUND_DEST_DIR)/gunner_shoot.flac \
-	$(SOUND_DEST_DIR)/imposter_gunner_shoot.flac \
-	$(SOUND_DEST_DIR)/powerup_pickup.flac
+SOUNDS           = $(patsubst sounds/%.flac,build/%.flac,$(wildcard sounds/*.flac))
+SOUNDS_WINDOWS   = $(patsubst sounds/%.flac,bin/%.flac,$(wildcard sounds/*.flac))
 
 COMPILER = gcc # you can also use clang, if you so desire
 
@@ -57,6 +45,10 @@ $(SOUND_DEST_DIR)/%.flac: $(SOUND_SOURCE_DIR)/%.flac
 	@echo "copying sound $< ..."
 	@cp $< $@
 
+bin/%.flac: $(SOUND_SOURCE_DIR)/%.flac
+	@echo "copying sound $< ..."
+	@cp $< $@
+
 clean:
 	rm -f obj/*.o
 	rm -f build/*
@@ -71,11 +63,11 @@ release: $(ASSETS)
 	gcc -o build/waistgunners $(RELEASE_ARGS) -pie
 	echo "done!"
 
-release_windows:
+release_windows: $(SOUNDS_WINDOWS)
 	# allegro libs and headers not included. sorry! instructions in README.
 	echo "building windows version..."
 	x86_64-w64-mingw32-gcc -o bin/waistgunners.exe $(WINDOWS_ARGS)
 	echo "copying assets..."
 	cp spritesheet.png bin/spritesheet.png
 	cp PressStart2P-Regular.ttf bin/PressStart2P-Regular.ttf
-	echo "done! now copy the sounds over!"
+	echo "done!"
