@@ -170,10 +170,10 @@ void init_sprites() {
 
     sprites.landscape = get_sprite(0, 79, LANDSCAPE_SIZE);
 
-    VECTOR small_cirrus_size         = { .x = 32, .y = 19 };
-    sprites.small_cirrus             = get_sprite(227, 0, small_cirrus_size);
-    VECTOR medium_stratoculumus_size = { .x = 62, .y = 41 };
-    sprites.medium_stratoculumus     = get_sprite(260, 0, medium_stratoculumus_size);
+    sprites.cloud_small = get_sprite(0, 465, CLOUD_SIZES[SMALL]);
+    sprites.cloud_wide  = get_sprite(61, 465, CLOUD_SIZES[WIDE]);
+    sprites.cloud_wispy = get_sprite(239, 465, CLOUD_SIZES[WISPY]);
+    sprites.cloud_light = get_sprite(0, 554, CLOUD_SIZES[LIGHT]);
 
     sprites.power_up_bigger_clip_size = get_sprite(102, 62, POWER_UP_SIZE);
     sprites.power_up_faster_reload    = get_sprite(136, 62, POWER_UP_SIZE);
@@ -218,8 +218,10 @@ void destroy_sprites() {
 
     al_destroy_bitmap(sprites.landscape);
 
-    al_destroy_bitmap(sprites.small_cirrus);
-    al_destroy_bitmap(sprites.medium_stratoculumus);
+    al_destroy_bitmap(sprites.cloud_small);
+    al_destroy_bitmap(sprites.cloud_wide);
+    al_destroy_bitmap(sprites.cloud_wispy);
+    al_destroy_bitmap(sprites.cloud_light);
 
     al_destroy_bitmap(sprites.power_up_bigger_clip_size);
     al_destroy_bitmap(sprites.power_up_faster_reload);
@@ -255,12 +257,20 @@ void draw_clouds() {
         if (!cloud->used) continue;
         ALLEGRO_BITMAP* sprite;
         switch (cloud->type) {
-            case SMALL_CIRRUS:
-                sprite = sprites.small_cirrus;
+            case SMALL:
+                sprite = sprites.cloud_small;
                 break;
-            case MEDIUM_STRATOCULUMUS:
-                sprite = sprites.medium_stratoculumus;
+            case WIDE:
+                sprite = sprites.cloud_wide;
                 break;
+            case WISPY:
+                sprite = sprites.cloud_wispy;
+                break;
+            case LIGHT:
+                sprite = sprites.cloud_light;
+                break;
+            default:
+                sprite = sprites.cloud_small;
         }
 
         al_draw_bitmap(sprite, cloud->position.x, cloud->position.y, 0);
@@ -430,7 +440,7 @@ void draw_smoke_particle(SMOKE_DATA* smoke) {
     ALLEGRO_COLOR colour = smoke->thick ? al_map_rgba_f(0, 0, 0, alpha) : al_map_rgba_f(0.75, 0.75, 0.75, alpha);
     float radius         = (1.0 - alpha) * MAX_SMOKE_RADIUS;
 
-    if (!smoke->thick) alpha = 1.0 - alpha;
+    //  if (!smoke->thick) alpha = 1.0 - alpha;
 
     al_draw_filled_circle(smoke->position.x, smoke->position.y, radius, colour);
 }

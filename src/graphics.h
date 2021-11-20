@@ -77,9 +77,11 @@ typedef struct SPRITES {
     ALLEGRO_BITMAP* landscape;
     // more landscape sprites might be added in the future, depends on how much time TheAyeStride has
 
-    ALLEGRO_BITMAP* small_cirrus;
-    ALLEGRO_BITMAP* medium_stratoculumus;
-    // more cloud sprites might be added in the future, depends on who is voluntold for making these
+    ALLEGRO_BITMAP* cloud_small;
+    ALLEGRO_BITMAP* cloud_wide;
+    ALLEGRO_BITMAP* cloud_wispy;
+    ALLEGRO_BITMAP* cloud_light;
+    // more cloud sprites might be added in the future, because i got voluntold for making these
 
     ALLEGRO_BITMAP* power_up_bigger_clip_size;
     ALLEGRO_BITMAP* power_up_faster_reload;

@@ -5,8 +5,10 @@
 #define _CLOUD
 
 typedef enum CLOUD_TYPES {
-    SMALL_CIRRUS = 0,
-    MEDIUM_STRATOCULUMUS,
+    SMALL = 0,
+    WIDE,
+    WISPY,
+    LIGHT,
     // more to be added
 
     CLOUD_TYPES_N,

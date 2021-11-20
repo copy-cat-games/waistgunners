@@ -130,6 +130,8 @@ int main() {
     main_menu();
 
     while (running) {
+        update_keyboard(&event);
+        update_mouse();
         al_wait_for_event(queue, &event);
 
         switch (event.type) {
@@ -156,14 +158,12 @@ int main() {
                 handle_key_down(event.keyboard.keycode);
                 break;
         }
-        update_keyboard(&event);
-        update_mouse();
 
         if (key_is_pressed(ALLEGRO_KEY_ESCAPE)) {
             running = false;
         }
 
-        if (redraw) {
+        if (redraw && al_is_event_queue_empty(queue)) {
             draw();
             redraw = false;
         }

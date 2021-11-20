@@ -5,9 +5,11 @@
 #define MAXIMUM_DELAY 75
 
 VECTOR CLOUD_SIZES[] = {
-    // each corresponds to a cloud type, above
-    { .x = 32, .y = 19 },
-    { .x = 61, .y = 42 },
+    // each corresponds to a cloud type, in the header
+    { .x = 60,  .y = 78 }, // small
+    { .x = 178, .y = 90 }, // wide
+    { .x = 79,  .y = 75 }, // wispy
+    { .x = 142, .y = 124 }, // light
 };
 
 CLOUD clouds[MAX_CLOUDS];
@@ -47,7 +49,7 @@ void update_clouds() {
 
     int type        = (int) between(0, CLOUD_TYPES_N);
     VECTOR size     = CLOUD_SIZES[type];
-    VECTOR position = { .x = between(-size.x, BUFFER_WIDTH), .y = -size.y };
+    VECTOR position = { .x = between(-size.x / 2, BUFFER_WIDTH + size.x / 2), .y = -size.y };
 
     CLOUD new_cloud = { .position = position, .type = type, .used = true, .speed = between(1, 2) };
 
